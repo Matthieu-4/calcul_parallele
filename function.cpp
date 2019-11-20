@@ -1,7 +1,8 @@
-#include <mpi>
-#include <math>
+//#include <mpi>
+#include <math.h>
 #include <iostream>
 #include <fstream>
+#include <malloc.h>
 
 int Status[MPI_STATUS_SIZE] = {};
 int PR = 4;
@@ -45,7 +46,7 @@ void Init(void){
 
 
 
-double f(x, y, t){
+double f(double x, double y, double t){
   if(cond_init == 3){
     return std::exp(-((x - Lx/2) * (x - Lx/2))) * std::exp(-((y - Ly/2) * (y - Ly/2))) * std::cos(t*pi/2);
   }else if(cond_init == 2){
@@ -56,7 +57,7 @@ double f(x, y, t){
 }
 
 
-double g(x, y, t){
+double g(double x, double y, double t){
   (void) t;
   if(cond_init == 2){
     return std::sin(x) + std::cos(y);
@@ -65,7 +66,7 @@ double g(x, y, t){
   }
 }
 
-double h(x, y, t){
+double h(double x, double y, double t){
   if(cond_init == 3){
     return 1.;
   }else if(cond_init == 2){
@@ -88,12 +89,11 @@ void ProdMatVect(double D1[],
                  int iN){
 
 
-  double* x1 = (double*)malloc(sizeof(double) * (iN + Nx - i1));
-  double* x2 = (double*)malloc(sizeof(double) * (iN + Nx - i1));
-  double* x3 = (double*)malloc(sizeof(double) * (iN + Nx - i1));
 
   int i = 0;
   if(i1 == 1){
+
+    double* x1 = (double*)malloc(sizeof(double) * (iN + Nx - i1));
     for(i = 0; i < iN - i1; i++){
       x1[i] = x[i];
     }
@@ -101,15 +101,17 @@ void ProdMatVect(double D1[],
     //MPI_RECV(x1(j1:j1+Nx-1),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD,status,statinfo)
     //MPI_SEND(x1(iN-Nx+1:iN),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD,statinfo)
 
-    y[0] = D1[0] * x1[0] + D2_p[0] * x1[1] + D3_p[0] * x1[Nx]
+    y[0] = D1[0] * x1[0] + D2_p[0] * x1[1] + D3_p[0] * x1[Nx];
     for(i = 1; i < iN; i++){
-      y[i] = D2_m[i]*x1[i-1]+D1[i]*x1[i]+D2_p[i]*x1[i+1]+D3_p[i]*x1[i+Nx]
+      y[i] = D2_m[i]*x1[i-1]+D1[i]*x1[i]+D2_p[i]*x1[i+1]+D3_p[i]*x1[i+Nx];
     }
     for(i = Nx; i < iN; i++){
-      y[i] = D3_m[i] * x1[i-Nx] + D2_m[i] * x1[i-1] + D1[i] * x1[i] + D2_p[i] * x1[i+1] + D3_p[i] * x1[i+Nx]
+      y[i] = D3_m[i] * x1[i-Nx] + D2_m[i] * x1[i-1] + D1[i] * x1[i] + D2_p[i] * x1[i+1] + D3_p[i] * x1[i+Nx];
     }
+    delete[] x1;
   } else if (iN == Nx*Ny){
-    double *x1 = (double*)malloc(sizeof(double) * (iN + Nx - i1));
+
+    double* x3 = (double*)malloc(sizeof(double) * (iN + Nx - i1));
     for(i = 0; i < iN - i1; i++){
       x3[i] = x[i];
     }
@@ -117,200 +119,134 @@ void ProdMatVect(double D1[],
     charge2(Ny, Np, me-1, &j1, &jN, &q);
     //MPI_RECV(x3(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
     for(i = 0; i < iN - Nx - i1; i++){
-      y[i] = D3_m[i]*x3[i-Nx]+D2_m[i]*x3[i-1]+D1[i]*x3[i]+D2_p[i]*x3[i+1]+D3_p[i]*x3[i+Nx]
+      y[i] = D3_m[i]*x3[i-Nx]+D2_m[i]*x3[i-1]+D1[i]*x3[i]+D2_p[i]*x3[i+1]+D3_p[i]*x3[i+Nx];
     }
     for(i = iN - Nx + 1 - i1; i < iN - i1 - 1; i++){
-      y[i] = D3_m[i]*x3[i-Nx]+D2_m[i]*x3[i-1]+D1[i]*x3[i]+D2_p[i]*x3[i+1]
+      y[i] = D3_m[i]*x3[i-Nx]+D2_m[i]*x3[i-1]+D1[i]*x3[i]+D2_p[i]*x3[i+1];
     }
-    y[Nx*Ny] = D3_m[Nx*Ny]*x3[Nx*Ny-Nx]+D2_m[Nx*Ny]*x3[Nx*Ny-1]+D1[Nx*Ny]*x3[Nx*Ny]
+    y[Nx*Ny] = D3_m[Nx*Ny]*x3[Nx*Ny-Nx]+D2_m[Nx*Ny]*x3[Nx*Ny-1]+D1[Nx*Ny]*x3[Nx*Ny];
+    delete[] x3;
   } else {
+
+    double* x2 = (double*)malloc(sizeof(double) * (iN + 2 * Nx - i1));
     for(i = 0; i < iN - i1; i++){
       x2[i] = x[i];
     }
 
-    Call MPI_SEND(x2(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
-    Call charge2(Ny,Np,me-1,j1,jN,q)
-    Call MPI_RECV(x2(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
-    Call charge2(Ny,Np,me+1,j1,jN,q)
-    Call MPI_RECV(x2(j1:j1+Nx-1),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,status,statinfo)
-    Call MPI_SEND(x2(iN-Nx+1:iN),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,statinfo)
+    //MPI_SEND(x2(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
+    charge2(Ny, Np, me-1, &j1, &jN, &q);
+    //MPI_RECV(x2(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
+    charge2(Ny, Np, me+1, &j1, &jN, &q);
+    //MPI_RECV(x2(j1:j1+Nx-1),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,status,statinfo)
+    //MPI_SEND(x2(iN-Nx+1:iN),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,statinfo)
 
-    Do i=i1,iN
-       y(i) = D3_m(i)*x2(i-Nx)+D2_m(i)*x2(i-1)+D1(i)*x2(i)+D2_p(i)*x2(i+1)+D3_p(i)*x2(i+Nx)
-    End Do
+    for(i = 0; i < iN - i1; i++){
+      y[i] = D3_m[i]*x2[i-Nx]+D2_m[i]*x2[i-1]+D1[i]*x2[i]+D2_p[i]*x2[i+1]+D3_p[i]*x2[i+Nx];
+    }
+    delete[] x2;
   }
 }
 
-  Subroutine ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,x,y,i1,iN)     ! Produit Mat/Vect en creux y=Ax, A=(D1,D2,D3)
-    Integer,Intent(In) :: i1, iN
-    Real(PR),Dimension(i1:iN),Intent(In) :: D1
-    Real(PR),Dimension(i1:iN),Intent(In) :: D2_p,D2_m
-    Real(PR),Dimension(i1:iN),Intent(In) :: D3_p,D3_m
-    Real(PR),Dimension(i1:iN),Intent(In) :: x
-    Real(PR),Dimension(i1:iN+Nx) :: x1              ! Stock pour le premier proc
-    Real(PR),Dimension(i1-Nx:iN+Nx) :: x2           ! Stock pour les autres procs
-    Real(PR),Dimension(i1-Nx:iN) :: x3              ! Stock pour le dernier proc
-    Real(PR),Dimension(i1:iN), Intent(Out) :: y
-    Integer :: i
+void Charge2(int n,
+            int Np,
+            int me,
+            int* i1,
+            int* iN,
+            double* q2){
 
 
-    If (i1==1) Then          ! Premier proc
-       do i = i1,iN
-          x1(i) = x(i)
-       end do
+  int q = n / Np;
+  int r = n % Np;
 
-       Call charge2(Ny,Np,me+1,j1,jN,q)
-       Call MPI_RECV(x1(j1:j1+Nx-1),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD,status,statinfo)
-       Call MPI_SEND(x1(iN-Nx+1:iN),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD,statinfo)
-
-       y(i1) = D1(i1)*x1(i1)+D2_p(i1)*x1(i1+1)+D3_p(i1)*x1(i1+Nx)     ! 1ere ligne (1er �lement)
-       Do i=2,iN                                                      ! 1ere ligne
-          y(i) = D2_m(i)*x1(i-1)+D1(i)*x1(i)+D2_p(i)*x1(i+1)+D3_p(i)*x1(i+Nx)
-       End Do
-       Do i = Nx+1,iN
-          y(i) = D3_m(i)*x1(i-Nx)+D2_m(i)*x1(i-1)+D1(i)*x1(i)+D2_p(i)*x1(i+1)+D3_p(i)*x1(i+Nx)
-       End Do
-
-
-    Else If (iN==Nx*Ny) Then        ! Dernier proc
-       do i = i1,iN
-          x3(i) = x(i)
-       end do
-
-       Call MPI_SEND(x3(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
-       Call charge2(Ny,Np,me-1,j1,jN,q)
-       Call MPI_RECV(x3(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
-
-       Do i = i1,iN-Nx
-          y(i) = D3_m(i)*x3(i-Nx)+D2_m(i)*x3(i-1)+D1(i)*x3(i)+D2_p(i)*x3(i+1)+D3_p(i)*x3(i+Nx)
-       End Do
-       Do i= iN - Nx + 1,iN - 1
-          y(i) = D3_m(i)*x3(i-Nx)+D2_m(i)*x3(i-1)+D1(i)*x3(i)+D2_p(i)*x3(i+1)
-       End Do
-       y(Nx*Ny) = D3_m(Nx*Ny)*x3(Nx*Ny-Nx)+D2_m(Nx*Ny)*x3(Nx*Ny-1)+D1(Nx*Ny)*x3(Nx*Ny)
+  if(r == 0){
+    *i1 = 1 + q * me;
+    *iN = q * (me + 1);
+  }else{
+    if( me < r){
+      *i1 = me * (q + 1) + 1;
+      *iN = (me + 1) * (q + 1);
+    }else{
+      *i1 = 1 + me * q + r;
+      *iN = (*i1) + q - 1;
+    }
+  }
 
 
-    Else                   ! autres procs
-       do i = i1,iN
-          x2(i) = x(i)
-       end do
+  // q est le nombre de lignes connues par le proc
+  *q2 = (*iN) - (*i1) + 1;
 
-       Call MPI_SEND(x2(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
-       Call charge2(Ny,Np,me-1,j1,jN,q)
-       Call MPI_RECV(x2(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
-       Call charge2(Ny,Np,me+1,j1,jN,q)
-       Call MPI_RECV(x2(j1:j1+Nx-1),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,status,statinfo)
-       Call MPI_SEND(x2(iN-Nx+1:iN),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,statinfo)
+  // On travaille sur n = nx*ny éléments
+  *i1 = ((*i1) - 1) * Nx + 1;
+  *iN = (*iN) * Nx;
+}
 
-       Do i=i1,iN
-          y(i) = D3_m(i)*x2(i-Nx)+D2_m(i)*x2(i-1)+D1(i)*x2(i)+D2_p(i)*x2(i+1)+D3_p(i)*x2(i+Nx)
-       End Do
+double prodscal(const double X[],
+                const double Y[],
+                const int i1,
+                const int iN){
 
-    end If
+  int i;
+  double result = 0, Somme = 0;
+  for (i = 0; i < iN - i1; i++) {
+    result += X[i] * Y[i];
+  }
 
-  End Subroutine ProdMatVect
+  //MPI_ALLREDUCE(result,Somme,1,MPI_REAL,MPI_SUM,MPI_COMM_WORLD,statinfo)
 
+  return Somme;
+}
+
+int Reste(int k, int Nx){
+  int r = k % Nx;
+  if(r != 0){
+    return r;
+  }
+  return Nx;
+}
+
+void grad_conj(double D1[],
+                 double D2_m[],
+                 double D2_p[],
+                 double D3_m[],
+                 double D3_p[],
+                 double x[],
+                 double b[],
+                 int i1,
+                 int iN){
 
 
 
+  int i = 0;
+  double* r = (double*)malloc(sizeof(double) * (iN - i1));
+  double* p = (double*)malloc(sizeof(double) * (iN - i1));
+  double* r2 = (double*)malloc(sizeof(double) * (iN - i1));
+  double* z = (double*)malloc(sizeof(double) * (iN - i1));
+  for(i = 0; i < iN - i1; i++){
+    x[i] = 293;
+    r[i] = b[i] - y[i];
+    p[i] = r[i];
+  }
+  ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,x,y,i1,iN);
+  double beta = std::sqrt(prodscal(r,r,i1,iN));
+  int k = 0;
+  while (beta > eps1 && k <= kmax){
+    ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,p,z,i1,iN);
+    alpha = prodscal(r,r,i1,iN)/(prodscal(z,p,i1,iN));
+    for(i = 0; i < iN - i1; i++){
+      x[i] = x[i] + alpha * p[i];
+      r2[i] = r[i];
+      r[i] = r[i] - alpha * z[i];
+    }
+    gamma = prodscal(r,r,i1,iN)/prodscal(r2,r2,i1,iN);
+    for(i = 0; i < iN - i1; i++){
+      p[i] = r[i] + gamma * p[i];
+    }
+    beta = std::sqrt(prodscal(r2,r2,i1,iN));
+    k++;
+  }
 
-  Subroutine Charge2(n,Np,me,i1,iN,q2)     ! Charge adapt�
-
-    Integer, Intent(In) :: n,Np,me
-    Integer, Intent(Out) :: i1,iN,q2
-    Integer :: q,r
-
-    q = n/Np
-    r = Mod(n,Np)
-
-    If (r==0) Then
-       i1 = 1 + q*me
-       iN = q*(me+1)
-
-    Else
-       If (me<r) Then
-          i1=me*(q+1)+1
-          iN=(me+1)*(q+1)
-       Else
-          i1=1+ me*q +r
-          iN=i1+q-1
-       End If
-    End If
-
-    ! q est le nombre de lignes connues par le proc
-    q2 = iN-i1 + 1
-
-    ! On travaille sur n = nx*ny éléments
-    i1 = (i1-1)*Nx +1
-    iN = iN*Nx
-
-  End Subroutine Charge2
-
-
-
-  Subroutine grad_conj(D1,D2_m,D2_p,D3_m,D3_p,x,b,i1,iN)   ! Gradient conjugué creux pour Ax=b, A=(D1,D2,D3)
-    Real(PR),Dimension(i1:iN),Intent(In) :: D1,D2_m,D2_p,D3_m,D3_p
-    Real(PR),Dimension(i1:iN),Intent(Out) :: x
-    Real(PR),Dimension(i1:iN),Intent(In) :: b
-    Real(PR),Dimension(i1:iN) :: r,r2,z,p
-    Real(PR),Dimension(i1:iN) :: y
-    Real(PR) :: alpha,beta,gamma
-    Integer,Intent(In) :: i1,iN
-    Integer :: k
-
-    x(i1:iN) = 293._PR
-    Call ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,x,y,i1,iN)
-    r = b-y
-    p = r
-    beta = Sqrt(prodscal(r,r,i1,iN))
-    k=0
-    Do While ((beta>eps1) .And. (k<=kmax))
-       Call ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,p,z,i1,iN)
-       alpha = prodscal(r,r,i1,iN)/(prodscal(z,p,i1,iN))
-       x = x + alpha*p
-       r2 = r
-       r = r - alpha*z
-       gamma = prodscal(r,r,i1,iN)/prodscal(r2,r2,i1,iN)
-       p = r + gamma*p
-       beta = Sqrt(prodscal(r2,r2,i1,iN))
-       k = k+1
-
-
-    End Do
-
-  End Subroutine grad_conj
-
-
-
-  Function prodscal(X,Y,i1,iN)Result(Somme)                 !!! Produit scalaire
-    Integer, Intent(In) :: i1,iN
-    Real(Kind=PR), Dimension(i1:iN), Intent(In) :: X,Y
-    Real(Kind=PR) :: Z,Somme
-    Integer :: k,statinfo
-
-    Somme=0._PR
-    Z=0._PR
-
-
-    Do k=i1,iN
-       Z = Z + X(k)*Y(k)
-    End Do
-
-    Call MPI_ALLREDUCE(Z,Somme,1,MPI_REAL,MPI_SUM,MPI_COMM_WORLD,statinfo)
-
-  End Function prodscal
-
-  Function Reste(k,Nx)Result(r)
-    Integer,intent(in) :: k,Nx
-    integer :: r
-    if (modulo(k,Nx) == 0)then
-       r = Nx
-    else
-       r = modulo(k,Nx)
-    end if
-  end Function Reste
-
-
-
-
-End Module Function
+  delete[] r;
+  delete[] p;
+  delete[] r2;
+  delete[] z;
+}
