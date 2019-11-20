@@ -14,7 +14,7 @@ Module Function
 
 Contains
 
-  Subroutine Init()     ! Lecture du fichier permettant d'initialiser le système
+  Subroutine Init()     ! Lecture du fichier permettant d'initialiser le systeme
     Integer :: i1,iN,q
 
     Open(1,file = "data.txt")
@@ -30,12 +30,12 @@ Contains
 
     dx = Lx/(Nx+1)
     dy = Ly/(Ny+1)
-    
+
     sx = D*dt/(dx*dx)
     sy = D*dt/(dy*dy)
 
     Call charge2(Ny,Np,me,i1,iN,q)
-    
+
 
     Allocate(U(i1:iN))
     Allocate(U0(i1:iN))
@@ -52,7 +52,7 @@ Contains
   Function f(x,y,t)Result(f_xy)         !!! f(x,y,t)
     Real,Intent(in)::x,y,t
     Real :: f_xy
-
+    
     Select Case (cond_init)
     Case(1)
        f_xy = 2*(y - y*y + x - x*x)
@@ -117,7 +117,7 @@ Contains
     Real(PR),Dimension(i1:iN), Intent(Out) :: y
     Integer :: i
 
-    
+
     If (i1==1) Then          ! Premier proc
        do i = i1,iN
           x1(i) = x(i)
@@ -127,15 +127,15 @@ Contains
        Call MPI_RECV(x1(j1:j1+Nx-1),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD,status,statinfo)
        Call MPI_SEND(x1(iN-Nx+1:iN),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD,statinfo)
 
-       y(i1) = D1(i1)*x1(i1)+D2_p(i1)*x1(i1+1)+D3_p(i1)*x1(i1+Nx)     ! 1ere ligne (1er élement)
+       y(i1) = D1(i1)*x1(i1)+D2_p(i1)*x1(i1+1)+D3_p(i1)*x1(i1+Nx)     ! 1ere ligne (1er ï¿½lement)
        Do i=2,iN                                                      ! 1ere ligne
           y(i) = D2_m(i)*x1(i-1)+D1(i)*x1(i)+D2_p(i)*x1(i+1)+D3_p(i)*x1(i+Nx)
        End Do
        Do i = Nx+1,iN
           y(i) = D3_m(i)*x1(i-Nx)+D2_m(i)*x1(i-1)+D1(i)*x1(i)+D2_p(i)*x1(i+1)+D3_p(i)*x1(i+Nx)
        End Do
-       
-    
+
+
     Else If (iN==Nx*Ny) Then        ! Dernier proc
        do i = i1,iN
           x3(i) = x(i)
@@ -144,7 +144,7 @@ Contains
        Call MPI_SEND(x3(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
        Call charge2(Ny,Np,me-1,j1,jN,q)
        Call MPI_RECV(x3(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
-              
+
        Do i = i1,iN-Nx
           y(i) = D3_m(i)*x3(i-Nx)+D2_m(i)*x3(i-1)+D1(i)*x3(i)+D2_p(i)*x3(i+1)+D3_p(i)*x3(i+Nx)
        End Do
@@ -152,10 +152,10 @@ Contains
           y(i) = D3_m(i)*x3(i-Nx)+D2_m(i)*x3(i-1)+D1(i)*x3(i)+D2_p(i)*x3(i+1)
        End Do
        y(Nx*Ny) = D3_m(Nx*Ny)*x3(Nx*Ny-Nx)+D2_m(Nx*Ny)*x3(Nx*Ny-1)+D1(Nx*Ny)*x3(Nx*Ny)
-              
+
 
     Else                   ! autres procs
-       do i = i1,iN 
+       do i = i1,iN
           x2(i) = x(i)
        end do
 
@@ -170,7 +170,7 @@ Contains
           y(i) = D3_m(i)*x2(i-Nx)+D2_m(i)*x2(i-1)+D1(i)*x2(i)+D2_p(i)*x2(i+1)+D3_p(i)*x2(i+Nx)
        End Do
 
-    end If  
+    end If
 
   End Subroutine ProdMatVect
 
@@ -178,7 +178,7 @@ Contains
 
 
 
-  Subroutine Charge2(n,Np,me,i1,iN,q2)     ! Charge adapté
+  Subroutine Charge2(n,Np,me,i1,iN,q2)     ! Charge adaptï¿½
 
     Integer, Intent(In) :: n,Np,me
     Integer, Intent(Out) :: i1,iN,q2
@@ -187,12 +187,12 @@ Contains
     q = n/Np
     r = Mod(n,Np)
 
-    If (r==0) Then 
+    If (r==0) Then
        i1 = 1 + q*me
        iN = q*(me+1)
 
-    Else 
-       If (me<r) Then 
+    Else
+       If (me<r) Then
           i1=me*(q+1)+1
           iN=(me+1)*(q+1)
        Else
@@ -238,8 +238,8 @@ Contains
        p = r + gamma*p
        beta = Sqrt(prodscal(r2,r2,i1,iN))
        k = k+1
-       
-       
+
+
     End Do
 
   End Subroutine grad_conj
@@ -269,7 +269,7 @@ Contains
     integer :: r
     if (modulo(k,Nx) == 0)then
        r = Nx
-    else 
+    else
        r = modulo(k,Nx)
     end if
   end Function Reste
