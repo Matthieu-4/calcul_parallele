@@ -52,7 +52,7 @@ Contains
   Function f(x,y,t)Result(f_xy)         !!! f(x,y,t)
     Real,Intent(in)::x,y,t
     Real :: f_xy
-    
+
     Select Case (cond_init)
     Case(1)
        f_xy = 2*(y - y*y + x - x*x)
@@ -209,6 +209,22 @@ Contains
     iN = iN*Nx
 
   End Subroutine Charge2
+
+  subroutine charge(n,Np,me,i1,iN)
+    integer,intent(in)::n,Np,me
+    integer,intent(out)::i1,iN
+    integer::q,r
+    q = n/Np
+    r = mod(n,Np)
+    if (me<r) then
+       i1 = me*(q+1) + 1
+       iN = (me+1)*(q+1)
+    else
+       i1 = 1 + r + me*q
+       iN = i1 + q - 1
+    end if
+
+  end subroutine charge
 
 
 
