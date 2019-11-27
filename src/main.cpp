@@ -96,7 +96,7 @@ int main(int argc, char** argv)
       U0[i] = U[i];
     t += dt;
     k += 1;
-    if (k/100 == 0)
+    if (k%100 == 0)
       printf("%d\n",k);
   }
 
