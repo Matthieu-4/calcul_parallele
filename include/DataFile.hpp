@@ -9,8 +9,8 @@ class DataFile {
  private:
 
   std::string _file_name;
-  int _Nx, _Ny, _kmax
-  double _Lx, _Ly, _D, _dt, _epsilon, tf
+  int _Nx, _Ny, _kmax;
+  double _Lx, _Ly, _D, _dt, _epsilon, _tf;
   std::string _results;
 
   bool _if_Nx;

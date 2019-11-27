@@ -1,6 +1,7 @@
 CC = g++
 
 CFLAGS = -I./include
+CFLAGS += -std=c++11
 
 #LDFLAGS = -fopenmp
 

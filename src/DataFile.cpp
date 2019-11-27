@@ -1,9 +1,11 @@
 #ifndef _DATA_FILE_CPP
 
-#include "DataFile.hpp"
 #include <fstream>
 #include <iostream>
 #include <cmath>
+#include <assert.h>
+
+#include "DataFile.hpp"
 
 using namespace std;
 
@@ -19,7 +21,7 @@ DataFile::DataFile(std::string file_name)
     if (!data_file.is_open())
     {
       cout << "Unable to open file " << _file_name << endl;
-      abort();
+      assert(0);
     }
     else
     {
