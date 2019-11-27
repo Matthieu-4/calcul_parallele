@@ -52,14 +52,15 @@ void MatriceDF(double *D1,
       D2_p[k+Nx-1] = 0.0;
       D2_m[k] = 0.0;
     }
+  }
 
 
 void sec_membre(double dx,
                 double dy,
                 double *Fx,
                 double t,
-                double i1,
-                double iN,
+                int i1,
+                int iN,
                 DataFile* data_file)
   {
     int Nx = data_file->Get_Nx();
@@ -69,11 +70,13 @@ void sec_membre(double dx,
     int Ly = data_file->Get_Ly();
     double dt = data_file->Get_dt();
 
+    int nb_per_proc = iN-i1+1;
+
     int i = 0, j = 0, k = 0;
     double sx, sy, A, B, C;
 
-    sx = dt/(dx**2);
-    sy = dt/(dy**2);
+    sx = dt/(dx*dx);
+    sy = dt/(dy*dy);
     A = 1.0+2.0*D*(sx+sy);
     B = -D*sx;
     C = -D*sy;
@@ -89,7 +92,7 @@ void sec_membre(double dx,
 
       Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Lx-dx,0.0,t)-B*h(Lx,dy,t);
 
-      for (k = Nx, k < nb_per_proc; k++)                // k(i,j) = i + Nx*(j-1)
+      for (k = Nx; k < nb_per_proc; k++)                // k(i,j) = i + Nx*(j-1)
       {
         i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
         j = (k-1.0)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
@@ -110,7 +113,7 @@ void sec_membre(double dx,
         j = (k-1.0)/Nx + 1;
         Fx[k] = dt*f(i*dx,j*dy,t);
         if (k%Nx == 1){
-          Fx[k] = Fx[k]-B*h(0._PR,j*dy,t);}
+          Fx[k] = Fx[k]-B*h(0.0,j*dy,t);}
         else if (k%Nx == 0){
           Fx[k] = Fx[k]-B*h(Lx,j*dy,t);}
       }
@@ -134,7 +137,7 @@ void sec_membre(double dx,
         Fx[k] = dt*f(i*dx,j*dy,t);
         if (k%Nx == 1){
           Fx[k] = Fx[k]-B*h(0.0,j*dy,t);}
-        else if (Mod(k,Nx) == 0){
+        else if (k%Nx == 0){
           Fx[k] = Fx[k]-B*h(Lx,j*dy,t);}
       }
     }
