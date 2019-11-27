@@ -1,6 +1,6 @@
 #ifndef _DATA_FILE_CPP
 
-#include "DataFile.h"
+#include "DataFile.hpp"
 #include <fstream>
 #include <iostream>
 #include <cmath>
