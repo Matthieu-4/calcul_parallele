@@ -1,3 +1,4 @@
+
 #include <mpi>
 #include <math>
 #include <iostream>
@@ -59,61 +60,66 @@ int main(int argc, char** argv)
 
     cin >> cond_init >> endl;
 
-    if (cond_init > 3 .or. cond_init < 1) then
-    print*, "Attention ! Le set (1) a ete pris par default"
+    if (cond_init > 3 || cond_init < 1)
+    cout <<  "Attention ! Le set (1) a ete pris par default" << endl;
 
   }
 
-  ! Partage du choix des conditions initiales aux autres processeurs
-  call MPI_BCAST(cond_init,1,MPI_INTEGER,0,MPI_COMM_WORLD,statinfo)
+  // Partage du choix des conditions initiales aux autres processeurs
+  // call MPI_BCAST(cond_init,1,MPI_INTEGER,0,MPI_COMM_WORLD,statinfo)
+  MPI_Bcast(cond_init, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
-  !!$  ! On mesure le temps de calcul par proc, premier compteur t1
-  !!$  call CPU_TIME(t1)
+  // !!$  ! On mesure le temps de calcul par proc, premier compteur t1
+  // !!$  call CPU_TIME(t1)
 
-  ! Répartition des procs
-  call charge2(Ny,Np,me,i1,iN,q)
+  // ! Répartition des procs
+  Charge2(Ny,Np,me,i1,iN,q)
+  int nb_per_proc = iN-i1+1
 
+  // Allocate(Fx(i1:iN),D1(i1:iN),D2_m(i1:iN),D2_p(i1:iN),D3_m(i1:iN),D3_p(i1:iN))
+  double* F = (double*)calloc(sizeof(double) * nb_per_proc);
+  double* D1 = (double*)calloc(sizeof(double) * nb_per_proc);
+  double* D2_m = (double*)calloc(sizeof(double) * nb_per_proc);
+  double* D2_p = (double*)calloc(sizeof(double) * nb_per_proc);
+  double* D3_m = (double*)calloc(sizeof(double) * nb_per_proc);
+  double* D3_p = (double*)calloc(sizeof(double) * nb_per_proc);
 
-  Allocate(Fx(i1:iN),D1(i1:iN),D2_m(i1:iN),D2_p(i1:iN),D3_m(i1:iN),D3_p(i1:iN))
-  Fx = 0._PR
-  Call MatriceDF(D1,D2_m,D2_p,D3_m,D3_p,D,sx,sy,i1,iN)
+  MatriceDF(D1,D2_m,D2_p,D3_m,D3_p,D,sx,sy,i1,iN);
 
-  k = 0
-  !Boucle en temps
-  Do while (t<tf)
-  Call sec_membre(Nx,Ny,dx,dy,dt,Lx,Ly,D,Fx,t,i1,iN)
-  Call grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U,Fx+U0,i1,iN)
-  U0 = U
-  t = t +dt
-  k = k+1
-  if (mod(k,100) == 0) then
-  print*, "nb_iter : ", k
-  end if
-  end Do
-
-
-  ! Ecriture de la solution sur des fichiers .dat pour chaque proc
-  Write( Me_string, '(i10)' )  Me
-  file_name = 'sol00' // trim(adjustl(Me_string)) // '.dat'
-  Open(10+Me, File=trim(file_name))
-  Do k=i1,iN
-  Write(10+Me,*) Reste(k,Nx)*dx, ((k-1)/Nx+1)*dy, U(k), k
-  End Do
-  close(10+Me)
-
-  !!$  ! Deuxième compteur en temps
-  !!$  call CPU_TIME(t2)
-  !!$
-  !!$  ! Temps de calcul final
-  !!$  temps=t2-t1
-  !!$  print*,'Le temps de calcul du proc',me,' pour résoudre le problème est :',temps,'s'
-
-  call MPI_FINALIZE(statinfo)
+  int k = 0;
+   /////////////////////////// BOUCLE EN TEMPS /////////////////////////
+  while (t<tf)
+  {
+    sec_membre(Nx,Ny,dx,dy,dt,Lx,Ly,D,Fx,t,i1,iN);
+    grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U,Fx+U0,i1,iN);
+    for (i = i1; i < iN; i++)
+      U0[i] = U[i];
+    t += dt;
+    k += 1;
+    if (k/100 == 0)
+      printf("%d\n",k);
+  }
 
 
-  Contains
+  // Ecriture de la solution sur des fichiers .dat pour chaque proc
 
+  // A voir plus tard
+  // Write( Me_string, '(i10)' )  Me
+  // file_name = 'sol00' // trim(adjustl(Me_string)) // '.dat'
+  // Open(10+Me, File=trim(file_name))
+  // Do k=i1,iN
+  // Write(10+Me,*) Reste(k,Nx)*dx, ((k-1)/Nx+1)*dy, U(k), k
+  // End Do
+  // close(10+Me)
 
+  // !!$  ! Deuxième compteur en temps
+  // !!$  call CPU_TIME(t2)
+  // !!$
+  // !!$  ! Temps de calcul final
+  // !!$  temps=t2-t1
+  // !!$  print*,'Le temps de calcul du proc',me,' pour résoudre le problème est :',temps,'s'
 
+  MPI_Finalize();
 
-  End Program Parallel
+  return 0;
+}
