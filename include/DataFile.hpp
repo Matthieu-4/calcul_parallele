@@ -1,4 +1,5 @@
 #ifndef _DATA_FILE_H
+#define _DATA_FILE_H
 
 #include <string>
 #include <vector>
@@ -42,5 +43,4 @@ class DataFile {
 
 };
 
-#define _DATA_FILE_H
 #endif

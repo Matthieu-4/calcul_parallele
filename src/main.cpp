@@ -1,11 +1,12 @@
 
-#include <mpi>
-#include <math>
+#include <mpi.h>
+#include <math.h>
 #include <iostream>
 #include <fstream>
 
-#include "function.h"
-#include "matrices.h"
+//#include "function.h"
+//#include "matrices.h"
+#include "DataFile.hpp"
 
 using namespace std;
 
@@ -19,9 +20,9 @@ int main(int argc, char** argv)
     abort();
   }
 
-  DataFile* data_file = new DataFile(argv[1]);
+  DataFile data_file(argv[1]);
   // Lecture du fichier de données
-  data_file->ReadDataFile();
+  data_file.ReadDataFile();
 
 
   // ! Definition des variables
@@ -43,9 +44,8 @@ int main(int argc, char** argv)
 
 
 
-  double t = 0
+  double t = 0;
   int cond_init = 0;
-
   // Choix condition initiale
 
   Init();

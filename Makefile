@@ -1,4 +1,4 @@
-CC = g++
+CC = mpic++
 
 CFLAGS = -I./include
 CFLAGS += -std=c++11
