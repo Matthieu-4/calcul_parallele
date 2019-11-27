@@ -1,7 +1,19 @@
-#ifndef _MATRICES_H
-#define _MATRICES_H
+#ifndef _FONCTION_H
+#define _FONCTION_H
+
+#include <mpi.h>
 
 #include "DataFile.hpp"
+
+
+extern MPI_Status status;
+extern int PR;
+extern int tag;
+extern double *U, *U0;
+extern int cond_init;
+extern double sx,sy,dx,dy,dt,Lx,Ly,D,eps1,t,tf, q;
+extern int i, me, Np, statinfo, i1, iN, j_1, jN, Ny, Nx, n, k, kmax;
+
 
 void Charge2(int n,
   int Np,
@@ -10,7 +22,7 @@ void Charge2(int n,
   int* iN,
   double* q2);
 
-void Init(void);
+void Init(DataFile*);
 double f(double x, double y, double t);
 double g(double x, double y, double t);
 double h(double x, double y, double t);

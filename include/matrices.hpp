@@ -20,8 +20,8 @@ void sec_membre(double dx,
   double dy,
   double *Fx,
   double t,
-  double i1,
-  double iN,
+  int i1,
+  int iN,
   DataFile* data_file);
 
 

@@ -4,8 +4,8 @@
 #include <iostream>
 #include <fstream>
 
-//#include "function.h"
-//#include "matrices.h"
+#include "function.hpp"
+#include "matrices.hpp"
 #include "DataFile.hpp"
 
 using namespace std;
@@ -48,9 +48,9 @@ int main(int argc, char** argv)
   int cond_init = 0;
   // Choix condition initiale
 
-  Init();
+  Init(&data_file);
 
-  if (me == 0) then
+  if (me == 0)
   {
     cout << " " << endl;
     cout << "\n Choisissez le jeu de conditions initiales (1,2 ou 3)" << endl;
@@ -58,41 +58,45 @@ int main(int argc, char** argv)
     cout << "2 : f = sin(x) + cos(y) ; g = sin(x) + cos(y) : h = sin(x) + cos(y)" << endl;
     cout << "3 : f = exp(-(x - Lx/2)^2).exp(-(y - Ly/2)^2).cos(t.pi/2) ; g = 0 : h = 1" << endl;
 
-    cin >> cond_init >> endl;
+    cin >> cond_init;
 
     if (cond_init > 3 || cond_init < 1)
-    cout <<  "Attention ! Le set (1) a ete pris par default" << endl;
+      cout <<  "Attention ! Le set (1) a ete pris par default" << endl;
 
   }
 
   // Partage du choix des conditions initiales aux autres processeurs
   // call MPI_BCAST(cond_init,1,MPI_INTEGER,0,MPI_COMM_WORLD,statinfo)
-  MPI_Bcast(cond_init, 1, MPI_INT, 0, MPI_COMM_WORLD);
+  MPI_Bcast(&cond_init, 1, MPI_INT, 0, MPI_COMM_WORLD);
 
   // !!$  ! On mesure le temps de calcul par proc, premier compteur t1
   // !!$  call CPU_TIME(t1)
 
   // ! Répartition des procs
-  Charge2(Ny,Np,me,i1,iN,q)
-  int nb_per_proc = iN-i1+1
+  Charge2(Ny,Np,me,&i1,&iN,&q);
+  int nb_per_proc = iN-i1+1;
 
   // Allocate(Fx(i1:iN),D1(i1:iN),D2_m(i1:iN),D2_p(i1:iN),D3_m(i1:iN),D3_p(i1:iN))
-  double* F = (double*)calloc(sizeof(double) * nb_per_proc);
-  double* D1 = (double*)calloc(sizeof(double) * nb_per_proc);
-  double* D2_m = (double*)calloc(sizeof(double) * nb_per_proc);
-  double* D2_p = (double*)calloc(sizeof(double) * nb_per_proc);
-  double* D3_m = (double*)calloc(sizeof(double) * nb_per_proc);
-  double* D3_p = (double*)calloc(sizeof(double) * nb_per_proc);
+  double* F = (double*)calloc(sizeof(double), nb_per_proc);
+  double* D1 = (double*)calloc(sizeof(double), nb_per_proc);
+  double* D2_m = (double*)calloc(sizeof(double), nb_per_proc);
+  double* D2_p = (double*)calloc(sizeof(double), nb_per_proc);
+  double* D3_m = (double*)calloc(sizeof(double), nb_per_proc);
+  double* D3_p = (double*)calloc(sizeof(double), nb_per_proc);
 
-  MatriceDF(D1,D2_m,D2_p,D3_m,D3_p,D,sx,sy,i1,iN);
+  MatriceDF(D1,D2_m,D2_p,D3_m,D3_p,sx,sy,i1,iN, &data_file);
 
   int k = 0;
    /////////////////////////// BOUCLE EN TEMPS /////////////////////////
   while (t<tf)
   {
-    sec_membre(Nx,Ny,dx,dy,dt,Lx,Ly,D,Fx,t,i1,iN);
-    grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U,Fx+U0,i1,iN);
-    for (i = i1; i < iN; i++)
+    sec_membre(dx, dy, F,t,i1,iN,&data_file);
+    int toto = 0;
+    for(toto = 0; toto < nb_per_proc; toto++){
+      F[toto] += U0[toto];
+    }
+    grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U, F,i1,iN);
+    for (i = 0; i < nb_per_proc; i++)
       U0[i] = U[i];
     t += dt;
     k += 1;

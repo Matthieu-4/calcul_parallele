@@ -21,7 +21,7 @@ DataFile::DataFile(std::string file_name)
     if (!data_file.is_open())
     {
       cout << "Unable to open file " << _file_name << endl;
-      assert(0);
+      abort();
     }
     else
     {

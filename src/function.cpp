@@ -7,7 +7,7 @@
 
 #include "DataFile.hpp"
 
-MPI_Status status; // MPI_STATUS_SIZE
+MPI_Status status;
 int PR = 4;
 int tag = 100;
 double *U, *U0;
@@ -50,20 +50,19 @@ void Charge2(int n,
 }
 
 
-void Init(void){
+void Init(DataFile* dataFile){
   int i1, iN;
   double q;
   //&Nx, &Ny, &Lx, &Ly, &D, &dt, &eps1, &kmax, &tf
-  DataFile dataFile("data.txt");
-  Nx = dataFile.Get_Nx();
-  Ny = dataFile.Get_Ny();
-  Lx = dataFile.Get_Lx();
-  Ly = dataFile.Get_Ly();
-  D = dataFile.Get_D();
-  dt = dataFile.Get_dt();
-  eps1 = dataFile.Get_epsilon();
-  kmax = dataFile.Get_kmax();
-  tf = dataFile.Get_tf();
+  Nx = dataFile->Get_Nx();
+  Ny = dataFile->Get_Ny();
+  Lx = dataFile->Get_Lx();
+  Ly = dataFile->Get_Ly();
+  D = dataFile->Get_D();
+  dt = dataFile->Get_dt();
+  eps1 = dataFile->Get_epsilon();
+  kmax = dataFile->Get_kmax();
+  tf = dataFile->Get_tf();
 
 
   dx = Lx/(Nx+1);
