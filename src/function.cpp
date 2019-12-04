@@ -37,7 +37,8 @@ void Charge2(int n,
       *iN = (me + 1) * (q + 1) - 1;
     }else{
       *i1 = me * q + r;
-      *iN = (me - 1) * q + r - 1;
+      //i1+q-1
+      *iN = (me + 1) * q + r - 1;
     }
   }
 
@@ -159,7 +160,7 @@ void ProdMatVect(double D1[],
       x3[i] = x[i];
     }
     //MPI_SEND(x3(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
-    fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
     MPI_Send(x3 + Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
     //Charge2(Ny, Np, me-1, &j_1, &jN, &q);
     //MPI_RECV(x3(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
@@ -199,7 +200,7 @@ void ProdMatVect(double D1[],
     MPI_Send(x2 + iN - 2 * Nx, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
 
     for(i = Nx; i < iN - i1+1 - Nx; i++){
-      y[i - Nx] = D3_m[i]*x2[i-Nx]+D2_m[i]*x2[i-1]+D1[i]*x2[i]+D2_p[i]*x2[i+1]+D3_p[i]*x2[i+Nx];
+      y[i - Nx] = D3_m[i]*x2[i-Nx] + D2_m[i]*x2[i1] + D1[i]*x2[i]+D2_p[i]*x2[i+1] + D3_p[i]*x2[i+Nx];
     }
     delete[] x2;
   }

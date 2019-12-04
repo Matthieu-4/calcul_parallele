@@ -16,7 +16,7 @@ Program Parallel
 
   t=0._PR
 
-  ! Choix condition initiale 
+  ! Choix condition initiale
 
   call Init()
 
@@ -28,18 +28,18 @@ Program Parallel
      print *, "3 : f = exp(-(x - Lx/2)^2).exp(-(y - Ly/2)^2).cos(t.pi/2) ; g = 0 : h = 1"
 
   read *, cond_init
-  
+
      if (cond_init > 3 .or. cond_init < 1) then
         print*, "Attention ! Le set (1) a ete pris par default"
      end if
   end if
-  
+
   ! Partage du choix des conditions initiales aux autres processeurs
   call MPI_BCAST(cond_init,1,MPI_INTEGER,0,MPI_COMM_WORLD,statinfo)
-  
+
 !!$  ! On mesure le temps de calcul par proc, premier compteur t1
 !!$  call CPU_TIME(t1)
-  
+
   ! Répartition des procs
   call charge2(Ny,Np,me,i1,iN,q)
 
@@ -51,17 +51,17 @@ Program Parallel
   k = 0
   !Boucle en temps
   Do while (t<tf)
-     Call sec_membre(Nx,Ny,dx,dy,dt,Lx,Ly,D,Fx,t,i1,iN)     
+     Call sec_membre(Nx,Ny,dx,dy,dt,Lx,Ly,D,Fx,t,i1,iN)
      Call grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U,Fx+U0,i1,iN)
      U0 = U
-     t = t +dt 
+     t = t +dt
      k = k+1
      if (mod(k,100) == 0) then
         print*, "nb_iter : ", k
      end if
   end Do
 
-  
+
   ! Ecriture de la solution sur des fichiers .dat pour chaque proc
   Write( Me_string, '(i10)' )  Me
   file_name = 'sol00' // trim(adjustl(Me_string)) // '.dat'
@@ -73,17 +73,17 @@ Program Parallel
 
 !!$  ! Deuxième compteur en temps
 !!$  call CPU_TIME(t2)
-!!$  
-!!$  ! Temps de calcul final 
+!!$
+!!$  ! Temps de calcul final
 !!$  temps=t2-t1
-!!$  print*,'Le temps de calcul du proc',me,' pour résoudre le problème est :',temps,'s'   
-  
+!!$  print*,'Le temps de calcul du proc',me,' pour résoudre le problème est :',temps,'s'
+
   call MPI_FINALIZE(statinfo)
 
 
 Contains
 
 
-  
+
 
 End Program Parallel

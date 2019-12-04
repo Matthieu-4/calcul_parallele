@@ -59,8 +59,8 @@ int main(int argc, char** argv)
     cout << "2 : f = sin(x) + cos(y) ; g = sin(x) + cos(y) : h = sin(x) + cos(y)" << endl;
     cout << "3 : f = exp(-(x - Lx/2)^2).exp(-(y - Ly/2)^2).cos(t.pi/2) ; g = 0 : h = 1" << endl;
 
-    cin >> cond_init;
-
+    //cin >> cond_init;
+    cond_init = 1;
     if (cond_init > 3 || cond_init < 1)
       cout <<  "Attention ! Le set (1) a ete pris par default" << endl;
 
@@ -75,6 +75,7 @@ int main(int argc, char** argv)
 
   // ! Répartition des procs
   Charge2(Ny,Np,me,&i1,&iN,&q);
+  cout << me << " " << i1 << " " << iN << " " << endl;
   int nb_per_proc = iN-i1+1;
 
   // Allocate(Fx(i1:iN),D1(i1:iN),D2_m(i1:iN),D2_p(i1:iN),D3_m(i1:iN),D3_p(i1:iN))
@@ -106,26 +107,28 @@ int main(int argc, char** argv)
   }
 
 
+
   // Ecriture de la solution sur des fichiers .dat pour chaque proc
 
   // A voir plus tard
   // Write( Me_string, '(i10)' )  Me
-  ofstream s;
+  // ofstream s;
   ofstream file;
-
-  s << "Result/res";
-  for(int boucle = 0; boucle < (log(Np) - log(me))/log(10); boucle++){
-      s << '0';
-  }
-  s << me << ".data";
-
+  //
+  // s << "Result/res";
+  // for(int boucle = 0; boucle < (log(Np) - log(me))/log(10); boucle++){
+  //     s << '0';
+  // }
+  // s << me << ".data";
+  char file_name [50];
+  sprintf(file_name, "Result/sol%d.dat", me);
   //string name(s);
-  fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+
   if(me == 0){
 
-    file.open("Result/res0.data", ios::out);
+    file.open(file_name, ios::out);
   }else{
-    file.open("Result/res1.data", ios::out);
+    file.open(file_name, ios::out);
   }
   for(int i = 0; i < iN - i1+1; i++){
     file << dx << " " << dy << " " << U[i] << "\n";
