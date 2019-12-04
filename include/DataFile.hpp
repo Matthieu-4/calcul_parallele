@@ -39,6 +39,7 @@ class DataFile {
   double Get_kmax() const {return _kmax;};
   double Get_epsilon() const {return _epsilon;};
   std::string Get_results() const {return _results;};
+  //void SaveResult();
 
 
 };

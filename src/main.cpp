@@ -25,6 +25,7 @@ int main(int argc, char** argv)
   data_file.ReadDataFile();
 
 
+
   // ! Definition des variables
   // Real(PR), dimension(:), Allocatable :: Fx,D1,D2_m,D2_p,D3_m,D3_p
   // character(len=50) :: file_name, Me_string
@@ -35,10 +36,10 @@ int main(int argc, char** argv)
   // Call MPI_COMM_SIZE(MPI_COMM_WORLD,Np,statinfo)
   MPI_Init(NULL, NULL);
   int world_rank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &Np);
+  MPI_Comm_rank(MPI_COMM_WORLD, &me);
   // Get the number of processes
   int world_size;
-  MPI_Comm_size(MPI_COMM_WORLD, &me);
+  MPI_Comm_size(MPI_COMM_WORLD, &Np);
   // Get the rank of the process
 
 
@@ -109,6 +110,27 @@ int main(int argc, char** argv)
 
   // A voir plus tard
   // Write( Me_string, '(i10)' )  Me
+  ofstream s;
+  ofstream file;
+
+  s << "Result/res";
+  for(int boucle = 0; boucle < (log(Np) - log(me))/log(10); boucle++){
+      s << '0';
+  }
+  s << me << ".data";
+
+  //string name(s);
+  fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+  if(me == 0){
+
+    file.open("Result/res0.data", ios::out);
+  }else{
+    file.open("Result/res1.data", ios::out);
+  }
+  for(int i = 0; i < iN - i1+1; i++){
+    file << dx << " " << dy << " " << U[i] << "\n";
+  }
+  file.close();
   // file_name = 'sol00' // trim(adjustl(Me_string)) // '.dat'
   // Open(10+Me, File=trim(file_name))
   // Do k=i1,iN

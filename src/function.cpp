@@ -23,20 +23,21 @@ void Charge2(int n,
             int* iN,
             double* q2){
 
-
+  //Np = fmax(1, Np);
+  //std::cout << Np << std::endl;
   int q = n / Np;
   int r = n % Np;
 
   if(r == 0){
-    *i1 = 1 + q * me;
-    *iN = q * (me + 1);
+    *i1 = q * me;
+    *iN = q * (me + 1) - 1;
   }else{
     if( me < r){
-      *i1 = me * (q + 1) + 1;
-      *iN = (me + 1) * (q + 1);
+      *i1 = me * (q + 1);
+      *iN = (me + 1) * (q + 1) - 1;
     }else{
-      *i1 = 1 + me * q + r;
-      *iN = (*i1) + q - 1;
+      *i1 = me * q + r;
+      *iN = (me - 1) * q + r - 1;
     }
   }
 
@@ -45,8 +46,8 @@ void Charge2(int n,
   *q2 = (*iN) - (*i1) + 1;
 
   // On travaille sur n = nx*ny éléments
-  *i1 = ((*i1) - 1) * Nx + 1;
-  *iN = (*iN) * Nx;
+  *i1 = (*i1) * Nx;
+  *iN = (*iN + 1) * Nx - 1;
 }
 
 
@@ -127,21 +128,23 @@ void ProdMatVect(double D1[],
 
   int i = 0;
 
-  if(i1 == 1){
+  if(i1 == 0){
 
-    double* x1 = (double*)malloc(sizeof(double) * (iN + Nx - i1 + 1));
-    for(i = 0; i < iN - i1; i++){
+    double* x1 = (double*)malloc(sizeof(double) * (iN + Nx + 1));
+    for(i = 0; i < iN + 1; i++){
       x1[i] = x[i];
     }
     double q = 0;
-    Charge2(Ny, Np, me+1, &j_1, &jN, &q);
+    //Charge2(Ny, Np, me+1, &j_1, &jN, &q);
     //MPI_RECV(x1(j_1:j_1+Nx-1),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD,status)
-    MPI_Recv(x1 + j_1, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD, &status);
+    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    MPI_Recv(x1 + iN, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD, &status);
     //MPI_SEND(x1(iN-Nx+1:iN),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD)
-    MPI_Send(x1 + iN - Nx, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD);
+    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    MPI_Send(x1 + iN - Nx + 1, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD);
 
     y[0] = D1[0] * x1[0] + D2_p[0] * x1[1] + D3_p[0] * x1[Nx];
-    for(i = 1; i < iN; i++){
+    for(i = 1; i < Nx; i++){
       y[i] = D2_m[i]*x1[i-1]+D1[i]*x1[i]+D2_p[i]*x1[i+1]+D3_p[i]*x1[i+Nx];
     }
     for(i = Nx; i < iN; i++){
@@ -149,46 +152,54 @@ void ProdMatVect(double D1[],
     }
     delete[] x1;
 
-  } else if (iN == Nx*Ny){
+  } else if (iN == Nx*Ny -1){
 
     double* x3 = (double*)malloc(sizeof(double) * (iN + Nx - i1 + 1));
-    for(i = 0; i < iN - i1 + 1; i++){
+    for(i = Nx; i < iN - i1 + 1; i++){
       x3[i] = x[i];
     }
     //MPI_SEND(x3(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
-    MPI_Send(x3 + i1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
-    Charge2(Ny, Np, me-1, &j_1, &jN, &q);
+    fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    MPI_Send(x3 + Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
+    //Charge2(Ny, Np, me-1, &j_1, &jN, &q);
     //MPI_RECV(x3(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
-    MPI_Recv(x3 + jN - Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
+    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    MPI_Recv(x3/* + jN - Nx*/, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
 
-    for(i = 0; i < iN - Nx - i1 + 1; i++){
-      y[i] = D3_m[i]*x3[i-Nx]+D2_m[i]*x3[i-1]+D1[i]*x3[i]+D2_p[i]*x3[i+1]+D3_p[i]*x3[i+Nx];
+    for(i = Nx; i < iN - Nx - i1 + 1; i++){
+      y[i - Nx] = D3_m[i]*x3[i-Nx]+D2_m[i]*x3[i-1]+D1[i]*x3[i]+D2_p[i]*x3[i+1]+D3_p[i]*x3[i+Nx];
     }
     for(i = iN - Nx + 1 - i1; i < iN - i1/*-1+1*/; i++){
-      y[i] = D3_m[i]*x3[i-Nx]+D2_m[i]*x3[i-1]+D1[i]*x3[i]+D2_p[i]*x3[i+1];
+      y[i - Nx] = D3_m[i]*x3[i-Nx]+D2_m[i]*x3[i-1]+D1[i]*x3[i]+D2_p[i]*x3[i+1];
     }
-    y[Nx*Ny] = D3_m[Nx*Ny]*x3[Nx*Ny-Nx]+D2_m[Nx*Ny]*x3[Nx*Ny-1]+D1[Nx*Ny]*x3[Nx*Ny];
+    y[iN - i1] = D3_m[Nx*Ny-1]*x3[Nx*Ny-Nx-1]+D2_m[Nx*Ny-1]*x3[Nx*Ny-2]+D1[Nx*Ny-1]*x3[Nx*Ny-1];
     delete[] x3;
 
-  } else {
+  } else { //TODO correction de segfault
 
     double* x2 = (double*)malloc(sizeof(double) * (iN + 2 * Nx - i1 + 1));
-    for(i = 0; i < iN - i1 + 1; i++){
+    for(i = Nx; i < iN - Nx - i1 + 1; i++){
       x2[i] = x[i];
     }
 
     //MPI_SEND(x2(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
-    Charge2(Ny, Np, me-1, &j_1, &jN, &q);
+    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    MPI_Send(x2 + Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
+    //Charge2(Ny, Np, me-1, &j_1, &jN, &q);
     //MPI_RECV(x2(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
-    MPI_Recv(x2 + jN - Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
+    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    MPI_Recv(x2 /*+ jN - Nx*/, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
 
-    Charge2(Ny, Np, me+1, &j_1, &jN, &q);
+    //Charge2(Ny, Np, me+1, &j_1, &jN, &q);
     //MPI_RECV(x2(j_1:j_1+Nx-1),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,status,statinfo)
-    MPI_Recv(x2 + j_1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
+    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    MPI_Recv(x2 + iN - Nx, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
     //MPI_SEND(x2(iN-Nx+1:iN),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,statinfo)
+    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+    MPI_Send(x2 + iN - 2 * Nx, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
 
-    for(i = 0; i < iN - i1+1; i++){
-      y[i] = D3_m[i]*x2[i-Nx]+D2_m[i]*x2[i-1]+D1[i]*x2[i]+D2_p[i]*x2[i+1]+D3_p[i]*x2[i+Nx];
+    for(i = Nx; i < iN - i1+1 - Nx; i++){
+      y[i - Nx] = D3_m[i]*x2[i-Nx]+D2_m[i]*x2[i-1]+D1[i]*x2[i]+D2_p[i]*x2[i+1]+D3_p[i]*x2[i+Nx];
     }
     delete[] x2;
   }
@@ -206,6 +217,7 @@ double prodscal(const double X[],
   }
 
   //MPI_ALLREDUCE(result,Somme,1,MPI_REAL,MPI_SUM,MPI_COMM_WORLD,statinfo)
+  //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
   MPI_Allreduce(&result, &somme, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
   return somme;
@@ -232,14 +244,14 @@ void grad_conj(double D1[],
 
 
   int i = 0;
-  double* r = (double*)malloc(sizeof(double) * (iN - i1));
-  double* p = (double*)malloc(sizeof(double) * (iN - i1));
-  double* r2 = (double*)malloc(sizeof(double) * (iN - i1));
-  double* z = (double*)malloc(sizeof(double) * (iN - i1));
-  double* y = (double*)malloc(sizeof(double) * (iN - i1));
+  double* r = (double*)malloc(sizeof(double) * (iN - i1 + 1));
+  double* p = (double*)malloc(sizeof(double) * (iN - i1 + 1));
+  double* r2 = (double*)malloc(sizeof(double) * (iN - i1 + 1));
+  double* z = (double*)malloc(sizeof(double) * (iN - i1 + 1));
+  double* y = (double*)malloc(sizeof(double) * (iN - i1 + 1));
 
   ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,x,y,i1,iN);
-  for(i = 0; i < iN - i1; i++){
+  for(i = 0; i < iN - i1 + 1; i++){
     x[i] = 293;
     r[i] = b[i] - y[i];
     p[i] = r[i];
@@ -250,13 +262,13 @@ void grad_conj(double D1[],
   while (beta > eps1 && k <= kmax){
     ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,p,z,i1,iN);
     alpha = prodscal(r,r,i1,iN)/(prodscal(z,p,i1,iN));
-    for(i = 0; i < iN - i1; i++){
+    for(i = 0; i < iN - i1 + 1; i++){
       x[i] = x[i] + alpha * p[i];
       r2[i] = r[i];
       r[i] = r[i] - alpha * z[i];
     }
     gamma = prodscal(r,r,i1,iN)/prodscal(r2,r2,i1,iN);
-    for(i = 0; i < iN - i1; i++){
+    for(i = 0; i < iN - i1 + 1; i++){
       p[i] = r[i] + gamma * p[i];
     }
     beta = sqrt(prodscal(r2,r2,i1,iN));
