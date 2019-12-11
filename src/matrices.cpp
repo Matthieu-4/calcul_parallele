@@ -156,3 +156,4 @@ void sec_membre(double dx,
       }
     }
   }
+}
