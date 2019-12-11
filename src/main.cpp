@@ -26,15 +26,6 @@ int main(int argc, char** argv)
   data_file.ReadDataFile();
 
 
-
-  // ! Definition des variables
-  // Real(PR), dimension(:), Allocatable :: Fx,D1,D2_m,D2_p,D3_m,D3_p
-  // character(len=50) :: file_name, Me_string
-  // Real(PR):: t1,t2,temps
-  // ! Mise en place de l'environnement parallele
-  // Call MPI_INIT(statinfo)
-  // Call MPI_COMM_RANK(MPI_COMM_WORLD,me,statinfo)
-  // Call MPI_COMM_SIZE(MPI_COMM_WORLD,Np,statinfo)
   int world_rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
   // Get the number of processes
@@ -42,34 +33,8 @@ int main(int argc, char** argv)
   MPI_Comm_size(MPI_COMM_WORLD, &Np);
   // Get the rank of the process
 
-
-
-
   double t = 0;
-  int cond_init = 0;
-  // Choix condition initiale
-
   Init(&data_file);
-
-  if (me == 0)
-  {
-    cout << " " << endl;
-    cout << "\n Choisissez le jeu de conditions initiales (1,2 ou 3)" << endl;
-    cout << "1 : f = 2(y - y^2 + x - x^2) ; g = 0 : h = 0" << endl;
-    cout << "2 : f = sin(x) + cos(y) ; g = sin(x) + cos(y) : h = sin(x) + cos(y)" << endl;
-    cout << "3 : f = exp(-(x - Lx/2)^2).exp(-(y - Ly/2)^2).cos(t.pi/2) ; g = 0 : h = 1" << endl;
-
-    //cin >> cond_init;
-    cond_init = 1;
-    if (cond_init > 3 || cond_init < 1)
-      cout <<  "Attention ! Le set (1) a ete pris par default" << endl;
-
-  }
-
-  // Partage du choix des conditions initiales aux autres processeurs
-  // call MPI_BCAST(cond_init,1,MPI_INTEGER,0,MPI_COMM_WORLD,statinfo)
-  MPI_Bcast(&cond_init, 1, MPI_INT, 0, MPI_COMM_WORLD);
-
   // !!$  ! On mesure le temps de calcul par proc, premier compteur t1
   // !!$  call CPU_TIME(t1)
 
@@ -77,7 +42,6 @@ int main(int argc, char** argv)
   Charge2(Ny,Np,me,&i1,&iN,&q);
   int nb_per_proc = iN-i1+1;
 
-  // Allocate(Fx(i1:iN),D1(i1:iN),D2_m(i1:iN),D2_p(i1:iN),D3_m(i1:iN),D3_p(i1:iN))
   double* F = (double*)calloc(sizeof(double), nb_per_proc);
   double* D1 = (double*)calloc(sizeof(double), nb_per_proc);
   double* D2_m = (double*)calloc(sizeof(double), nb_per_proc);
@@ -86,10 +50,6 @@ int main(int argc, char** argv)
   double* D3_p = (double*)calloc(sizeof(double), nb_per_proc);
 
   MatriceDF(D1,D2_m,D2_p,D3_m,D3_p,sx,sy,i1,iN, &data_file);
-  // if (me==0)
-  //   cout << "sx" << " " << sx << " " << "sy" << " " << sy << endl;
-  // for (i = 0 ; i < nb_per_proc ; i++)
-  //   cout << me << " " << i << " " << D3_m[i] << endl;
 
   int k = 0;
    /////////////////////////// BOUCLE EN TEMPS /////////////////////////
@@ -101,58 +61,52 @@ int main(int argc, char** argv)
       F[toto] += U0[toto];
     }
     grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U, F,i1,iN);
-
-    // for (i = 0 ; i < nb_per_proc ; i++)
-    //   cout << me << " " << i << " " << U[i] << endl;
-    // cout << me << " " << U[0] << endl;
     for (i = 0; i < nb_per_proc; i++)
       U0[i] = U[i];
     t += dt;
     k += 1;
-    cout << " " << endl;
-    abort();
-    if (k%100 == 0)
-      printf("%d\n",k);
-    // if (k%10 == 0){
-      //printf("%d\n",k);
-      // abort();
-    // }
+    if (k%50 == 0){
+      printf("%d %f\n",k, U0[4]);
+    }
   }
-
 
 
   // Ecriture de la solution sur des fichiers .dat pour chaque proc
 
-  // A voir plus tard
-  // Write( Me_string, '(i10)' )  Me
-  // ofstream s;
   ofstream file;
-  //
-  // s << "Result/res";
-  // for(int boucle = 0; boucle < (log(Np) - log(me))/log(10); boucle++){
-  //     s << '0';
-  // }
-  // s << me << ".data";
+  ofstream plot;
+
   char file_name [50];
+  char place_holder [50];
+  char plot_name [50] = "Result/sol.plot";
   sprintf(file_name, "Result/sol%d.dat", me);
-  //string name(s);
 
-  if(me == 0){
+  file.open(file_name, ios::out);
 
-    file.open(file_name, ios::out);
-  }else{
-    file.open(file_name, ios::out);
-  }
-  for(int i = 0; i < iN - i1+1; i++){
-    file << dx << " " << dy << " " << U[i] << "\n";
+  for(int k = 0; k < iN - i1 + 1; k++){
+    file << Reste(k,Nx)*dx << " " << dy*(1 + (i1 + k)/Nx)  << " " << U[k] << "\n";
   }
   file.close();
-  // file_name = 'sol00' // trim(adjustl(Me_string)) // '.dat'
-  // Open(10+Me, File=trim(file_name))
-  // Do k=i1,iN
-  // Write(10+Me,*) Reste(k,Nx)*dx, ((k-1)/Nx+1)*dy, U(k), k
-  // End Do
-  // close(10+Me)
+
+  int cond_init = data_file.Get_cond_init();
+  if (me == 0)
+  {
+    plot.open(plot_name, ios::out);
+    plot << "set terminal png" << endl;
+    plot << "set output 'Sol.png'" << endl;
+    plot << "set ticslevel 0" << endl;
+    plot << "splot 'Result/sol0.dat'";
+    for (i = 1; i < Np; i++)
+    {
+      sprintf(place_holder, "'Result/sol%d.dat'", i);
+      plot << ", " << place_holder;
+    }
+    if (cond_init == 1)
+      plot << ", x*(1-x)*y*(1-y)" << endl;
+    else if (cond_init == 2)
+      plot << ", sin(x)+cos(y)" << endl;
+    plot.close();
+  }
 
   // !!$  ! Deuxième compteur en temps
   // !!$  call CPU_TIME(t2)

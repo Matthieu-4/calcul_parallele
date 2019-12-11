@@ -10,7 +10,7 @@
 using namespace std;
 
 DataFile::DataFile(std::string file_name)
-: _if_Nx(false), _if_Ny(false), _if_Lx(false), _if_Ly(false), _if_D(false), _if_dt(false), _if_tf(false), _if_kmax(false), _if_epsilon(false), _if_results(false), _file_name(file_name)
+: _if_Nx(false), _if_Ny(false), _if_Lx(false), _if_Ly(false), _if_D(false), _if_dt(false), _if_tf(false), _if_kmax(false), _if_epsilon(false), _if_results(false), _if_cond_init(false), _file_name(file_name)
 {}
 
 
@@ -84,6 +84,11 @@ DataFile::DataFile(std::string file_name)
         data_file >> _epsilon; _if_epsilon = true;
       }
 
+      if (file_line.find("set de conditions initiales") != std::string::npos)
+      {
+        data_file >> _cond_init; _if_cond_init = true;
+      }
+
       if (file_line.find("results") != std::string::npos)
       {
         data_file >> _results; _if_results = true;
@@ -96,6 +101,14 @@ DataFile::DataFile(std::string file_name)
       cout << "-------------------------------------------------" << endl;
       cout << "Beware - The default results folder name (results) is used." << endl;
       _results = "results";
+    }
+
+    if (!_if_results)
+    {
+
+      cout << "-------------------------------------------------" << endl;
+      cout << "Beware - The default initial conditions (set 1) are used." << endl;
+      _cond_init = 1;
     }
 
   }

@@ -89,7 +89,6 @@ void sec_membre(double dx,
     if (i1 == 0)
     {
       Fx[0] = dt*f(dx,dy,t) - C*g(dx,0.0,t)-B*h(0.0,dy,t);
-
       for (k = 1; k < Nx-1; k++)
         Fx[k] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Reste(k,Nx)*dx,0.0,t);
 

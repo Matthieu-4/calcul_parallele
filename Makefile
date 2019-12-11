@@ -1,5 +1,5 @@
 CC = mpic++
-CCF = mpif90
+# CCF = mpif90
 
 CFLAGS = -I./include
 CFLAGS += -std=c++11
@@ -15,17 +15,17 @@ SRCF_FILES = $(wildcard src/*.f90) #$(notdir $(wildcard src/*.f90))
 #OBJF_FILES = $(addprefix obj/f90/,$(SRCF_FILES:.f90=.o))
 
 
-all: bin/main.exe bin/mainf90.exe
+all: bin/main.exe
 
 
 bin/main.exe: $(OBJ_FILES)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-bin/mainf90.exe: $(SRCF_FILES)
-	$(CCF) $^ $(LDFLAGSF)
-	mv a.out bin/mainf90
-	rm matrice.mod
-	rm function.mod
+# bin/mainf90.exe: $(SRCF_FILES)
+# 	$(CCF) $^ $(LDFLAGSF)
+# 	mv a.out bin/mainf90
+# 	rm matrice.mod
+# 	rm function.mod
 
 obj/%.o: src/%.cpp
 	$(CC) $< -o $@ -c $(CFLAGS)
@@ -43,3 +43,6 @@ run: all
 
 clean:
 	rm -f bin/* obj/*.o obj/f90/*.o
+
+plot:
+	gnuplot Result/sol.plot
