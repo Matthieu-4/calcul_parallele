@@ -8,7 +8,7 @@
 #include "matrices.hpp"
 using namespace std;
 
-using namespace std;
+
 
 // Construction de la matrice DF (cas linéaire)
 void MatriceDF(double *D1,
@@ -135,7 +135,7 @@ void sec_membre(double dx,
       for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++)
         Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*g(Reste(k,Nx)*dx,Ly,t);
 
-      Fx[nb_per_proc] = dt*f(Lx-dx,Ly-dy,t)-C*g(Lx-dx,Ly,t)-B*h(Lx,Ly-dy,t);
+      Fx[nb_per_proc-1] = dt*f(Lx-dx,Ly-dy,t)-C*g(Lx-dx,Ly,t)-B*h(Lx,Ly-dy,t);
 
     }
 

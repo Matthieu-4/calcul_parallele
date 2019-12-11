@@ -13,6 +13,7 @@ using namespace std;
 
 int main(int argc, char** argv)
 {
+  MPI_Init(&argc, &argv);
 
   if (argc < 2)
   {
@@ -34,7 +35,6 @@ int main(int argc, char** argv)
   // Call MPI_INIT(statinfo)
   // Call MPI_COMM_RANK(MPI_COMM_WORLD,me,statinfo)
   // Call MPI_COMM_SIZE(MPI_COMM_WORLD,Np,statinfo)
-  MPI_Init(NULL, NULL);
   int world_rank;
   MPI_Comm_rank(MPI_COMM_WORLD, &me);
   // Get the number of processes
@@ -96,19 +96,23 @@ int main(int argc, char** argv)
   while (t<tf)
   {
     sec_membre(dx, dy, F,t,i1,iN,&data_file);
-    // for (i = 0 ; i < nb_per_proc ; i++)
-    //   cout << me << " " << i << " " << F[i] << endl;
     int toto = 0;
     for(toto = 0; toto < nb_per_proc; toto++){
       F[toto] += U0[toto];
     }
     grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U, F,i1,iN);
+
+    // for (i = 0 ; i < nb_per_proc ; i++)
+    //   cout << me << " " << i << " " << U[i] << endl;
     // cout << me << " " << U[0] << endl;
     for (i = 0; i < nb_per_proc; i++)
       U0[i] = U[i];
     t += dt;
     k += 1;
+    cout << " " << endl;
     abort();
+    if (k%100 == 0)
+      printf("%d\n",k);
     // if (k%10 == 0){
       //printf("%d\n",k);
       // abort();
