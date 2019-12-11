@@ -23,8 +23,6 @@ void Charge2(int n,
             int* iN,
             double* q2){
 
-  //Np = fmax(1, Np);
-  //std::cout << Np << std::endl;
   int q = n / Np;
   int r = n % Np;
 
@@ -136,12 +134,9 @@ void ProdMatVect(double D1[],
       x1[i] = x[i];
     }
     double q = 0;
-    //Charge2(Ny, Np, me+1, &j_1, &jN, &q);
-    //MPI_RECV(x1(j_1:j_1+Nx-1),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD,status)
-    fprintf(stderr, "[%d] %d -> %d\n",me , 1, me);
+
     MPI_Recv(x1 + iN, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD, &status);
-    //MPI_SEND(x1(iN-Nx+1:iN),Nx,MPI_REAL,1,tag,MPI_COMM_WORLD)
-    fprintf(stderr, "[%d] %d -> %d\n",me , me, 1);
+
     MPI_Send(x1 + iN - Nx + 1, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD);
 
     y[0] = D1[0] * x1[0] + D2_p[0] * x1[1] + D3_p[0] * x1[Nx];
@@ -159,12 +154,9 @@ void ProdMatVect(double D1[],
     for(i = Nx; i < iN - i1 + 1; i++){
       x3[i] = x[i];
     }
-    //MPI_SEND(x3(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
-    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+
     MPI_Send(x3 + Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
-    //Charge2(Ny, Np, me-1, &j_1, &jN, &q);
-    //MPI_RECV(x3(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
-    fprintf(stderr, "[%d] %d -> %d\n",me , me-1, me);
+
     MPI_Recv(x3/* + jN - Nx*/, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
 
     for(i = Nx; i < iN - Nx - i1 + 1; i++){
@@ -183,20 +175,14 @@ void ProdMatVect(double D1[],
       x2[i] = x[i];
     }
 
-    //MPI_SEND(x2(i1:i1+Nx-1),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,statinfo)
-    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+
     MPI_Send(x2 + Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
-    //Charge2(Ny, Np, me-1, &j_1, &jN, &q);
-    //MPI_RECV(x2(jN-Nx+1:jN),Nx,MPI_REAL,me-1,tag,MPI_COMM_WORLD,status,statinfo)
-    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+
     MPI_Recv(x2 /*+ jN - Nx*/, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
 
-    //Charge2(Ny, Np, me+1, &j_1, &jN, &q);
-    //MPI_RECV(x2(j_1:j_1+Nx-1),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,status,statinfo)
-    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+
     MPI_Recv(x2 + iN - Nx, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
-    //MPI_SEND(x2(iN-Nx+1:iN),Nx,MPI_REAL,me+1,tag,MPI_COMM_WORLD,statinfo)
-    //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
+
     MPI_Send(x2 + iN - 2 * Nx, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
 
     for(i = Nx; i < iN - i1+1 - Nx; i++){
@@ -217,8 +203,6 @@ double prodscal(const double X[],
     result += X[i] * Y[i];
   }
 
-  //MPI_ALLREDUCE(result,Somme,1,MPI_REAL,MPI_SUM,MPI_COMM_WORLD,statinfo)
-  //fprintf(stderr, "ERROR in file %s, %s at line %d\n",__FILE__ , __func__, __LINE__);
   MPI_Allreduce(&result, &somme, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
 
   return somme;

@@ -107,8 +107,7 @@ void sec_membre(double dx,
     // Dernier proc
     if (iN == Nx*Ny-1)
     {
-      for ( k = 0; k < nb_per_proc - Nx; k++)
-      {
+      for ( k = 0; k < nb_per_proc - Nx; k++){
         i = Reste(k,Nx);
         j = (k-1.0)/Nx + 1;
         Fx[k] = dt*f(i*dx,j*dy,t);
@@ -121,14 +120,11 @@ void sec_membre(double dx,
       Fx[nb_per_proc - Nx] = dt*f(dx,Ly-dy,t)-C*g(dx,Ly,t)-B*h(0.0,Ly-dy,t);
 
       for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++){
-        Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*g(Reste(k,Nx)*dx,Ly,t);}
-
+        Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*g(Reste(k,Nx)*dx,Ly,t);
+      }
       Fx[nb_per_proc] = dt*f(Lx-dx,Ly-dy,t)-C*g(Lx-dx,Ly,t)-B*h(Lx,Ly-dy,t);
-    }
 
-    // Les autres procs
-    else
-    {
+    } else { // Les autres procs
       for (k = 0; k < nb_per_proc; k++)
       {
         i = Reste(k,Nx);
