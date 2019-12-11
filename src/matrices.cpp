@@ -7,6 +7,8 @@
 #include "function.hpp"
 #include "matrices.hpp"
 
+using namespace std;
+
 // Construction de la matrice DF (cas linéaire)
 void MatriceDF(double *D1,
                double *D2_m,
@@ -75,20 +77,24 @@ void sec_membre(double dx,
     int i = 0, j = 0, k = 0;
     double sx, sy, A, B, C;
 
+
     sx = dt/(dx*dx);
     sy = dt/(dy*dy);
     A = 1.0+2.0*D*(sx+sy);
     B = -D*sx;
     C = -D*sy;
 
-
     // Premier proc
     if (i1 == 0)
     {
       Fx[0] = dt*f(dx,dy,t) - C*g(dx,0.0,t)-B*h(0.0,dy,t);
 
-      for (k = 1; k < Nx-2; k++){
-        Fx[k] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Reste(k,Nx)*dx,0.0,t);}
+      cout << Nx << endl;
+      for (k = 1; k < Nx-1; k++){
+        Fx[k] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Reste(k,Nx)*dx,0.0,t);
+        cout << k << " " << Fx[k] << " " << endl;
+        cout << Reste(k,Nx) << " " << f(Reste(k,Nx)*dx,dy,t) << endl;
+      }
 
       Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Lx-dx,0.0,t)-B*h(Lx,dy,t);
 
@@ -107,7 +113,8 @@ void sec_membre(double dx,
     // Dernier proc
     if (iN == Nx*Ny-1)
     {
-      for ( k = 0; k < nb_per_proc - Nx; k++){
+      for ( k = 0; k < nb_per_proc - Nx; k++)
+      {
         i = Reste(k,Nx);
         j = (k-1.0)/Nx + 1;
         Fx[k] = dt*f(i*dx,j*dy,t);
@@ -120,11 +127,14 @@ void sec_membre(double dx,
       Fx[nb_per_proc - Nx] = dt*f(dx,Ly-dy,t)-C*g(dx,Ly,t)-B*h(0.0,Ly-dy,t);
 
       for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++){
-        Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*g(Reste(k,Nx)*dx,Ly,t);
-      }
-      Fx[nb_per_proc] = dt*f(Lx-dx,Ly-dy,t)-C*g(Lx-dx,Ly,t)-B*h(Lx,Ly-dy,t);
+        Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*g(Reste(k,Nx)*dx,Ly,t);}
 
-    } else { // Les autres procs
+      Fx[nb_per_proc] = dt*f(Lx-dx,Ly-dy,t)-C*g(Lx-dx,Ly,t)-B*h(Lx,Ly-dy,t);
+    }
+
+    // Les autres procs
+    else
+    {
       for (k = 0; k < nb_per_proc; k++)
       {
         i = Reste(k,Nx);

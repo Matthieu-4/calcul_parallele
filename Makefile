@@ -5,7 +5,6 @@ CFLAGS = -I./include
 CFLAGS += -std=c++11
 CFLAGS +=  -g -O0
 
-CFLAGSF = -modulepath
 
 #LDFLAGS = -fopenmp
 

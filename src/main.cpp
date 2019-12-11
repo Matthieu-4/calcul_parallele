@@ -75,7 +75,6 @@ int main(int argc, char** argv)
 
   // ! Répartition des procs
   Charge2(Ny,Np,me,&i1,&iN,&q);
-  cout << me << " " << i1 << " " << iN << " " << endl;
   int nb_per_proc = iN-i1+1;
 
   // Allocate(Fx(i1:iN),D1(i1:iN),D2_m(i1:iN),D2_p(i1:iN),D3_m(i1:iN),D3_p(i1:iN))
@@ -87,23 +86,33 @@ int main(int argc, char** argv)
   double* D3_p = (double*)calloc(sizeof(double), nb_per_proc);
 
   MatriceDF(D1,D2_m,D2_p,D3_m,D3_p,sx,sy,i1,iN, &data_file);
+  // if (me==0)
+  //   cout << "sx" << " " << sx << " " << "sy" << " " << sy << endl;
+  // for (i = 0 ; i < nb_per_proc ; i++)
+  //   cout << me << " " << i << " " << D3_m[i] << endl;
 
   int k = 0;
    /////////////////////////// BOUCLE EN TEMPS /////////////////////////
   while (t<tf)
   {
     sec_membre(dx, dy, F,t,i1,iN,&data_file);
+    // for (i = 0 ; i < nb_per_proc ; i++)
+    //   cout << me << " " << i << " " << F[i] << endl;
     int toto = 0;
     for(toto = 0; toto < nb_per_proc; toto++){
       F[toto] += U0[toto];
     }
     grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U, F,i1,iN);
+    // cout << me << " " << U[0] << endl;
     for (i = 0; i < nb_per_proc; i++)
       U0[i] = U[i];
     t += dt;
     k += 1;
-    if (k%100 == 0)
-      printf("%d\n",k);
+    abort();
+    // if (k%10 == 0){
+      //printf("%d\n",k);
+      // abort();
+    // }
   }
 
 
