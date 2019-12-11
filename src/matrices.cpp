@@ -6,6 +6,7 @@
 
 #include "function.hpp"
 #include "matrices.hpp"
+using namespace std;
 
 using namespace std;
 
@@ -89,47 +90,53 @@ void sec_membre(double dx,
     {
       Fx[0] = dt*f(dx,dy,t) - C*g(dx,0.0,t)-B*h(0.0,dy,t);
 
-      cout << Nx << endl;
-      for (k = 1; k < Nx-1; k++){
+      for (k = 1; k < Nx-1; k++)
         Fx[k] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Reste(k,Nx)*dx,0.0,t);
-        cout << k << " " << Fx[k] << " " << endl;
-        cout << Reste(k,Nx) << " " << f(Reste(k,Nx)*dx,dy,t) << endl;
-      }
+
 
       Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Lx-dx,0.0,t)-B*h(Lx,dy,t);
+
+
 
       for (k = Nx; k < nb_per_proc; k++)                // k(i,j) = i + Nx*(j-1)
       {
         i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
-        j = (k-1.0)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
+        j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
         Fx[k] = dt*f(i*dx,j*dy,t);
-        if (k%Nx == 1){
-          Fx[k] = Fx[k]-B*h(0.0,j*dy,t);}
-        else if (k%Nx == 0){
-          Fx[k] = Fx[k]-B*h(Lx,j*dy,t);}
+
+
+        if (k%Nx == 0)
+          Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
+        else if (k%Nx == Nx - 1)
+          Fx[k] = Fx[k]-B*h(Lx,j*dy,t);
       }
     }
 
     // Dernier proc
-    if (iN == Nx*Ny-1)
+    else if (iN == Nx*Ny-1)
     {
+
       for ( k = 0; k < nb_per_proc - Nx; k++)
       {
         i = Reste(k,Nx);
-        j = (k-1.0)/Nx + 1;
+        j = (i1+k)/Nx + 1.0;
         Fx[k] = dt*f(i*dx,j*dy,t);
-        if (k%Nx == 1){
-          Fx[k] = Fx[k]-B*h(0.0,j*dy,t);}
-        else if (k%Nx == 0){
-          Fx[k] = Fx[k]-B*h(Lx,j*dy,t);}
+
+
+        if (k%Nx == 0)
+          Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
+        else if (k%Nx == Nx - 1)
+          Fx[k] = Fx[k]-B*h(Lx,j*dy,t);
       }
 
       Fx[nb_per_proc - Nx] = dt*f(dx,Ly-dy,t)-C*g(dx,Ly,t)-B*h(0.0,Ly-dy,t);
 
-      for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++){
-        Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*g(Reste(k,Nx)*dx,Ly,t);}
+
+      for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++)
+        Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*g(Reste(k,Nx)*dx,Ly,t);
 
       Fx[nb_per_proc] = dt*f(Lx-dx,Ly-dy,t)-C*g(Lx-dx,Ly,t)-B*h(Lx,Ly-dy,t);
+
     }
 
     // Les autres procs
@@ -138,13 +145,14 @@ void sec_membre(double dx,
       for (k = 0; k < nb_per_proc; k++)
       {
         i = Reste(k,Nx);
-        j = (k-1.0)/Nx + 1;
+        j = (i1+k)/Nx + 1;
 
         Fx[k] = dt*f(i*dx,j*dy,t);
-        if (k%Nx == 1){
-          Fx[k] = Fx[k]-B*h(0.0,j*dy,t);}
-        else if (k%Nx == 0){
-          Fx[k] = Fx[k]-B*h(Lx,j*dy,t);}
+
+        if (k%Nx == 0)
+          Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
+        else if (k%Nx == Nx-1){
+          Fx[k] = Fx[k]-B*h(Lx,j*dy,t);
       }
     }
   }

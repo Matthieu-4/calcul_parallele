@@ -97,7 +97,7 @@ double g(double x, double y, double t){
   if(cond_init == 2){
     return sin(x) + cos(y);
   }else{
-    return 2 * (y - y * y + x - x * x);
+    return 0;
   }
 }
 
@@ -107,7 +107,7 @@ double h(double x, double y, double t){
   }else if(cond_init == 2){
     return sin(x) + cos(y);
   }else{
-    return 2 * (y - y * y + x - x * x);
+    return 0;
   }
 }
 
@@ -209,11 +209,11 @@ double prodscal(const double X[],
 }
 
 int Reste(int k, int Nx){
-  int r = k % Nx;
-  if(r != 0){
-    return r;
+  int i = (k+1) % Nx;
+  if(i == 0){
+    return Nx  ;
   }
-  return Nx;
+  return i;
 }
 
 void grad_conj(double D1[],
