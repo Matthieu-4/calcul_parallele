@@ -134,7 +134,7 @@ void ProdMatVect(double D1[],
       x1[i] = x[i];
     }
 
-    double q = 0;
+    //double q = 0;
     MPI_Recv(x1 + iN + 1, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD, &status);
 
     MPI_Send(x1 + iN - Nx + 1, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD);

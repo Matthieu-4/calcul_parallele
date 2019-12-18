@@ -4,8 +4,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "function.hpp"
-#include "matrices.hpp"
+#include "Matrices.hpp"
 #include "DataFile.hpp"
 
 using namespace std;
@@ -29,6 +28,8 @@ int main(int argc, char** argv)
 
   int k = 0;
   double t = 0;
+  double tf = solver->getTf();
+  double dt = solver->getDt();
   while (t < tf)
   {
     solver->computeSecondMember(t);
@@ -52,7 +53,6 @@ int main(int argc, char** argv)
   solver->saveSolution(file_name);
   solver->makePlot(plot_name);
 
-  delete solver;
 
   MPI_Finalize();
 
