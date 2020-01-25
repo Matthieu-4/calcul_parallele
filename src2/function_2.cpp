@@ -62,7 +62,6 @@ void Charge_part_domaine(int n,
 
   if(r == 0){
     *i1 = q * me;
-
     *iN = q * (me + 1) - 1;
   }else{
     if( me < r){
@@ -212,8 +211,7 @@ void grad_conj(double D1[],
   double* z = (double*)malloc(sizeof(double) * (iN - i1 + 1));
   double* y = (double*)malloc(sizeof(double) * (iN - i1 + 1));
 
-  //for(i = 0; i < iN - i1 + 1; i++)
-    //x[i] = 293.0;
+  
   ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,x,y,i1,iN);
 
   for(i = 0; i < iN - i1 + 1; i++){
@@ -247,15 +245,4 @@ void grad_conj(double D1[],
   delete[] r2;
   delete[] z;
   delete[] y;
-}
-
-int cmp_vect(const double x[],
-             const double y[],
-             const int Nx)    // ajouter epsilon (précision)
-{
-  int i = 0;//0.0001
-  while (i < Nx && fabs(x[i] - y[i]) < 0.001 )  // epsilon = 000.00001
-    i += 1;
-
-  return (i == Nx);
 }
