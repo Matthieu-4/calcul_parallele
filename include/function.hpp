@@ -62,4 +62,14 @@ void grad_conj(double D1[],
   int iN);
 
 
+void grad_conj(double D1[],
+  double D2_m[],
+  double D2_p[],
+  double D3_m[],
+  double D3_p[],
+  double x[],
+  double b[],
+  int i1,
+  int iN);
+
 #endif
