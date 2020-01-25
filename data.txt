@@ -1,8 +1,8 @@
 Nx
-50
+6
 
 Ny
-50
+6
 
 Lx
 1.0
@@ -19,6 +19,8 @@ dt
 epsilon
 0.00000001
 
+epsilon2
+0.00000001
 
 kmax
 100
@@ -30,4 +32,4 @@ results
 Result
 
 set de conditions initiales
-3
+1

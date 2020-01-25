@@ -55,7 +55,7 @@ void MatriceDF(double *D1,
       D2_p[k+Nx-1] = 0.0;
       D2_m[k] = 0.0;
     }
-    
+
   }
 
 
@@ -67,6 +67,8 @@ void sec_membre(double dx,
                 int iN,
                 DataFile* data_file)
   {
+    printf("2.1 \n ",me);
+    
     int Nx = data_file->Get_Nx();
     int Ny = data_file->Get_Ny();
     double D = data_file->Get_D();
@@ -85,6 +87,7 @@ void sec_membre(double dx,
     A = 1.0+2.0*D*(sx+sy);
     B = -D*sx;
     C = -D*sy;
+    printf("2.1 \n ",me);
 
     // Premier proc
     if (i1 == 0)

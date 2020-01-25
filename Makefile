@@ -8,7 +8,7 @@ CFLAGS +=  -g -O0
 
 #LDFLAGS = -fopenmp
 
-SRC_FILES = $(notdir $(wildcard src/*.cpp))
+SRC_FILES = $(notdir $(wildcard src2/*.cpp))
 OBJ_FILES = $(addprefix obj/,$(SRC_FILES:.cpp=.o))
 
 SRCF_FILES = $(wildcard src/*.f90) #$(notdir $(wildcard src/*.f90))
@@ -27,7 +27,7 @@ bin/main.exe: $(OBJ_FILES)
 # 	rm matrice.mod
 # 	rm function.mod
 
-obj/%.o: src/%.cpp
+obj/%.o: src2/%.cpp
 	$(CC) $< -o $@ -c $(CFLAGS)
 
 #obj/f90/%.o: src/%.f90
@@ -39,7 +39,7 @@ install:
 	mkdir -p bin obj Result #obj/f90
 
 run: all
-	mpirun -n 2 --mca pml ob1 ./bin/main.exe data.txt
+	mpirun -n 3 --mca pml ob1 ./bin/main.exe data.txt
 
 clean:
 	rm -f bin/* obj/*.o obj/f90/*.o

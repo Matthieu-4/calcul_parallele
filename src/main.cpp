@@ -166,7 +166,7 @@ int main(int argc, char** argv)
     /////////////////////////// BOUCLE EN TEMPS /////////////////////////
     while (t<tf)
     {
-      printf("1 me : %d i12 : %d iN2 : %d ; l = %d\n ",me,i12,iN2,l);
+      printf("1 me : %d i12 : %d iN2 : %d ; function = %d ; line = %d : file = %d\n ",me,i12,iN2,__FUNC__,__LINE__);
 
       int test1 = 1;
       int test2 = 1;
@@ -175,6 +175,8 @@ int main(int argc, char** argv)
         printf("2 me : %d i12 : %d iN2 : %d ; l = %d\n ",me,i12,iN2,l);
 
         sec_membre(dx, dy, F,t,i12,iN2,&data_file);
+        printf("2.5 me : %d i12 : %d iN2 : %d ; l = %d\n ",me,i12,iN2,l);
+
         int toto = 0;
         for(toto = 0; toto < nb_per_proc; toto++){
           F[toto] += U0[toto];
