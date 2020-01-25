@@ -81,15 +81,11 @@ void Charge_part_domaine(int n,
   *i1 = (*i1) * Nx;
   *iN = (*iN + 1) * Nx - 1;
 
+  *i12 = *i1;
+  *iN2 = *iN;
 
-  if (*i1 == 0){
-    *i12 = 0;
-    *iN2 = *iN + Nx*h;
-  }else if (*iN == Nx*Ny-1){
-    *i12 = *i1 - Nx*h;
-    *iN2 = *iN;
-  }else{
-    *i12 = *i1 - Nx*h;
+  if (*iN != Nx*Ny-1){
+    *i12 = *i1;
     *iN2 = *iN + Nx*h;
   }
 }
@@ -163,15 +159,15 @@ void ProdMatVect(double D1[],
 
   y[0] = D1[0] * x[0] + D2_p[0] * x[1] + D3_p[0] * x[Nx];
   for(i = 1; i < Nx; i++){
-    y[i] = D2_m[i]*x[i-1]+D1[i]*x[i]+D2_p[i]*x[i+1]+D3_p[i]*x[i+Nx];
+    y[i] = D2_m[i]*x[i-1] + D1[i]*x[i] + D2_p[i]*x[i+1] + D3_p[i]*x[i+Nx];
   }
-  for(i = Nx; i < iN - i1 - Nx ; i++){
-    y[i] = D3_m[i]*x[i] + D2_m[i]*x[i-1] + D1[i]*x[i]+D2_p[i]*x[i+1] + D3_p[i]*x[i+Nx] + D3_m[i]*x[i-Nx];
+  for(i = Nx; i < iN - i1 - Nx +1; i++){
+    y[i] = D2_m[i]*x[i-1] + D1[i]*x[i] + D2_p[i]*x[i+1] + D3_p[i]*x[i+Nx] + D3_m[i]*x[i-Nx];
   }
-  for(i = iN - i1 - Nx + 1 ; i < iN - i1; i++){
-    y[i] = D3_m[i]*x[i] + D2_m[i]*x[i-1] + D1[i]*x[i]+D2_p[i]*x[i+1] + D3_m[i]*x[i-Nx];
+  for(i = iN - i1 - Nx + 1; i < iN - i1; i++){
+    y[i] = D2_m[i]*x[i-1] + D1[i]*x[i] + D2_p[i]*x[i+1] + D3_m[i]*x[i-Nx];
   }
-  y[iN - i1] = D3_m[iN - i1]*x[iN - i1]+D2_m[iN - i1]*x[iN - i1 - 1]+D1[iN - i1]*x[iN - Nx - i1];
+  y[iN - i1] = D3_m[iN - i1]*x[iN - i1 - Nx] + D2_m[iN - i1]*x[iN - i1 - 1] + D1[iN - i1]*x[iN - i1];
 
 
 }
@@ -216,8 +212,8 @@ void grad_conj(double D1[],
   double* z = (double*)malloc(sizeof(double) * (iN - i1 + 1));
   double* y = (double*)malloc(sizeof(double) * (iN - i1 + 1));
 
-  for(i = 0; i < iN - i1 + 1; i++)
-    x[i] = 293.0;
+  //for(i = 0; i < iN - i1 + 1; i++)
+    //x[i] = 293.0;
   ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,x,y,i1,iN);
 
   for(i = 0; i < iN - i1 + 1; i++){
@@ -257,8 +253,8 @@ int cmp_vect(const double x[],
              const double y[],
              const int Nx)    // ajouter epsilon (précision)
 {
-  int i = 0;
-  while (i < Nx && fabs(x[i] - y[i]) < 0.0001 )  // epsilon = 000.00001
+  int i = 0;//0.0001
+  while (i < Nx && fabs(x[i] - y[i]) < 0.001 )  // epsilon = 000.00001
     i += 1;
 
   return (i == Nx);

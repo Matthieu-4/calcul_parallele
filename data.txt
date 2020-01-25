@@ -1,8 +1,8 @@
 Nx
-6
+50
 
 Ny
-6
+50
 
 Lx
 1.0
@@ -32,4 +32,4 @@ results
 Result
 
 set de conditions initiales
-1
+2

@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <malloc.h>
 
-#include "function_2.hpp"
+#include "function.hpp"
 using namespace std;
 
 MPI_Status status;
@@ -180,9 +180,12 @@ void ProdMatVect(double D1[],
     }
 
     double q = 0;
+    printf("[%s:%d] %d %d\n", __FILE__, __LINE__, i1, iN);
     MPI_Recv(x1 + iN + 1, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD, &status);
+    printf("%s : %d\n", __FILE__, __LINE__);
 
     MPI_Send(x1 + iN - Nx + 1, Nx, MPI_DOUBLE, 1, tag, MPI_COMM_WORLD);
+    printf("%s : %d\n", __FILE__, __LINE__);
 
     y[0] = D1[0] * x1[0] + D2_p[0] * x1[1] + D3_p[0] * x1[Nx];
     for(i = 1; i < Nx; i++){
@@ -202,9 +205,13 @@ void ProdMatVect(double D1[],
     for(i = Nx; i < Nx + iN - i1 + 1; i++){
       x3[i] = x[i-Nx];
     }
+    printf("%s : %d\n", __FILE__, __LINE__);
 
     MPI_Send(x3 + Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
+    printf("%s : %d\n", __FILE__, __LINE__);
+
     MPI_Recv(x3, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
+    printf("%s : %d\n", __FILE__, __LINE__);
 
 
     for(i = Nx; i < iN - i1 + 1; i++){
@@ -226,16 +233,21 @@ void ProdMatVect(double D1[],
     for(i = Nx; i < Nx + iN - i1 + 1; i++){
       x2[i] = x[i-Nx];
     }
+    printf("%s : %d\n", __FILE__, __LINE__);
 
     MPI_Send(x2 + Nx, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
+    printf("%s : %d\n", __FILE__, __LINE__);
 
     MPI_Recv(x2, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
 
+    printf("%s : %d\n", __FILE__, __LINE__);
 
 
     MPI_Recv(x2 + iN - i1 + 1 + Nx, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
+    printf("%s : %d\n", __FILE__, __LINE__);
 
     MPI_Send(x2 + iN - i1 + 1 , Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
+    printf("%s : %d\n", __FILE__, __LINE__);
 
     for(i = Nx; i < Nx + iN - i1 + 1; i++){
       y[i - Nx] = D3_m[i-Nx]*x2[i-Nx] + D2_m[i-Nx]*x2[i-1] + D1[i-Nx]*x2[i]+D2_p[i-Nx]*x2[i+1] + D3_p[i-Nx]*x2[i+Nx];
@@ -256,8 +268,10 @@ double prodscal(const double X[],
   for (i = 0; i < iN - i1 + 1; i++) {
     result += X[i] * Y[i];
   }
+  printf("%s : %d\n", __FILE__, __LINE__);
 
   MPI_Allreduce(&result, &somme, 1, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD);
+  printf("%s : %d\n", __FILE__, __LINE__);
 
   return somme;
 }

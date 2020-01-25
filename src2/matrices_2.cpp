@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 #include <malloc.h>
-
+#include <unistd.h>
 #include "function_2.hpp"
 #include "matrices_2.hpp"
 using namespace std;
@@ -65,8 +65,7 @@ void MatriceDF(double *D1,
     double t,
     int i1,
     int iN,
-    DataFile* data_file)
-    {
+    DataFile* data_file) {
 
       int Nx = data_file->Get_Nx();
       int Ny = data_file->Get_Ny();
@@ -167,8 +166,7 @@ void MatriceDF(double *D1,
       int iN,
       DataFile* data_file,
       double *comp_1,
-      double *comp_2)
-      {
+      double *comp_2) {
 
         int Nx = data_file->Get_Nx();
         int Ny = data_file->Get_Ny();
@@ -192,12 +190,17 @@ void MatriceDF(double *D1,
         // Premier proc
         if (i1 == 0)
         {
+          //printf("== %d ==\n", me);
           Fx[0] = dt*f(dx,dy,t) - C*g(dx,0.0,t)-B*h(0.0,dy,t);
-          for (k = 1; k < Nx-1; k++)
+          //printf("%lf\n", Fx[0]);
+
+          for (k = 1; k < Nx-1; k++){
             Fx[k] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Reste(k,Nx)*dx,0.0,t);
+            //printf("%lf\n", Fx[k]);
+          }
 
           Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Lx-dx,0.0,t)-B*h(Lx,dy,t);
-
+          //printf("%lf\n", Fx[Nx-1]);
 
 
           for (k = Nx; k < nb_per_proc - Nx; k++)                // k(i,j) = i + Nx*(j-1)
@@ -211,21 +214,33 @@ void MatriceDF(double *D1,
               Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
             else if (k%Nx == Nx - 1)
               Fx[k] = Fx[k]-B*h(Lx,j*dy,t);
+              //printf("%lf\n", Fx[k]);
+
           }
 
           Fx[nb_per_proc - Nx] = dt*f(dx,Ly-dy,t)-C*comp_2[0]-B*h(0.0,Ly-dy,t);
-          for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++)
+          //printf("%lf\n", Fx[nb_per_proc - Nx]);
+
+          for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++){
             Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*comp_2[k - nb_per_proc + Nx];
+            //printf("%lf\n", Fx[k]);
+          }
 
           Fx[nb_per_proc-1] = dt*f(Lx-dx,Ly-dy,t)-C*comp_2[Nx-1]-B*h(Lx,Ly-dy,t);
-
+          //printf("%lf\n", Fx[nb_per_proc-1]);
+          //usleep(2000000);
         } else if (iN == Nx*Ny-1) { // Dernier proc
 
+          //usleep(3000000);
+          //printf("%d\n", me);
           Fx[0] = dt*f(dx,dy,t) - C*comp_1[0] - B * h(0.0,dy,t);
-          for (k = 1; k < Nx-1; k++)
+          //printf("%lf\n", Fx[0]);
+          for (k = 1; k < Nx-1; k++) {
             Fx[k] = dt*f(Reste(k,Nx)*dx,dy,t) - C*comp_1[k];
+            //printf("%lf\n", Fx[k]);
+          }
 
-          Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*comp_1[Nx-1]-B*h(Lx,dy,t);
+          Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*comp_1[Nx-1] - B*h(Lx,dy,t);
 
 
 
@@ -235,18 +250,23 @@ void MatriceDF(double *D1,
             j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
             Fx[k] = dt*f(i*dx,j*dy,t);
 
-
             if (k%Nx == 0)
               Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
             else if (k%Nx == Nx - 1)
               Fx[k] = Fx[k]-B*h(Lx,j*dy,t);
+
+            //printf("%lf\n", Fx[k]);
+
           }
 
           Fx[nb_per_proc - Nx] = dt*f(dx,Ly-dy,t)-C*g(dx,Ly,t)-B*h(0.0,Ly-dy,t);
-          for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++)
+          for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++){
             Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*g(Reste(k,Nx)*dx,Ly,t);
+            //printf("%lf\n", Fx[k]);
+          }
 
           Fx[nb_per_proc-1] = dt*f(Lx-dx,Ly-dy,t)-C*g(Lx-dx,Ly,t)-B*h(Lx,Ly-dy,t);
+          //printf("%lf\n", Fx[nb_per_proc-1]);
 
         } else { // Les autres procs
 
@@ -277,4 +297,5 @@ void MatriceDF(double *D1,
 
           Fx[nb_per_proc-1] = dt*f(Lx-dx,Ly-dy,t)-C*comp_2[Nx-1]-B*h(Lx,Ly-dy,t);
         }
+        //abort();
       }

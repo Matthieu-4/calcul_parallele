@@ -147,8 +147,11 @@ int main(int argc, char** argv)
 
     U = (double*) calloc(nb_per_proc, sizeof(double));
     U0 = (double*) calloc(nb_per_proc, sizeof(double));
-    for(i = 0; i < iN2-i12+1; i++)
-      U0[i] = 1.;
+    for(i = 0; i < iN2-i12+1; i++){
+      U0[i] = 0.;
+      U[i] = 0.;
+    }
+
     double* F = (double*)calloc(nb_per_proc, sizeof(double) );
     double* D1 = (double*)calloc(nb_per_proc, sizeof(double) );
     double* D2_m = (double*)calloc(nb_per_proc, sizeof(double) );
@@ -165,86 +168,95 @@ int main(int argc, char** argv)
 
 
     /////////////////////////// BOUCLE EN TEMPS /////////////////////////
-    while (t<tf)
-    {
+    while (t<tf) {
 
-      int test1_all = 0;
-      int test2_all = 0;
-      int test1 = 0;
-      int test2 = 0;
+      double error = 1e307;
+      double norm[2] = {error, error};
+      int current_norm = 0;
+      int prev_norm = 1;
       int offset1 = Nx*h;
-      int offset2 = iN2 - i12 - Nx*h + 1;
+      int offset2 = iN-i1+1 - Nx;
 
       if (i12 == 0){
         MPI_Recv(comp_2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
-        MPI_Send(U + offset2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
+        MPI_Send(U + iN-i1+1 - Nx, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
 
       }else if (iN2 == Nx*Ny - 1){
-        MPI_Send(U + offset1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
-        MPI_Recv(comp_1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
+        MPI_Send(U + offset1, Nx*h, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
+        MPI_Recv(comp_1, Nx*h, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
 
       }else{
-        MPI_Send(U + offset1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
+        MPI_Send(U + offset1, Nx*h, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
         MPI_Recv(comp_1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
         MPI_Recv(comp_2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
         MPI_Send(U + offset2 , Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
       }
 
-      update_sec_membre(dx, dy, F,t,i12,iN2,&data_file,comp_1,comp_2);
+      //update_sec_membre(dx, dy, F,t,i12,iN2,&data_file,comp_1,comp_2);
+      //printf("NO\n");
+      while (error > 0.000001) {
 
-      while (test1_all == 0 && test2_all == 0)
-      {
-
-        printf(" 3 me : %d i12 : %d iN2 : %d ; l = %d\n ",me,i12,iN2,l);
-
-        //sec_membre(dx, dy, F,t,i12,iN2,&data_file);
-        printf("2.5 me : %d i12 : %d iN2 : %d ; l = %d\n ",me,i12,iN2,l);
-
+        //printf("%d : %d, %d\n", me, offset1, offset2);
         int toto = 0;
         for(toto = 0; toto < nb_per_proc; toto++){
           F[toto] += U0[toto];
         }
         grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U, F,i12,iN2);
-        for (i = 0; i < nb_per_proc; i++)
+
+        for (i = 0; i < nb_per_proc; i++){
           U0[i] = U[i];
+          //printf("%lf\n", U[i]);
+        }
+
+        /*for(i = 0; i < Nx; i++){
+            comp_1[i] = U[i];
+            comp_2[Nx - 1 - i] = U[nb_per_proc - i - 1];
+        }*/
 
         if (i12 == 0){
-          test1 = 1;
           MPI_Recv(comp_2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
           MPI_Send(U + offset2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
-          test2 = cmp_vect(U + offset2, comp_2, Nx);
+          //printf("========\n");
+          //for(i = 0; i < Nx; i++){
+          //    printf("%lf, %lf\n", (U + nb_per_proc - Nx)[i], comp_2[i]);
+          //}
 
         }else if (iN2 == Nx*Ny - 1){
           MPI_Send(U + offset1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
           MPI_Recv(comp_1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
-          test1 = cmp_vect( U + offset1, comp_1, Nx);
-          test2 = 1;
+
 
         }else{
           MPI_Send(U + offset1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
           MPI_Recv(comp_1, Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD, &status);
           MPI_Recv(comp_2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
-          MPI_Send(U + offset2 , Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
+          MPI_Send(U + offset2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
 
-          test1 = cmp_vect( U + offset1, comp_1, Nx);
-          test2 = cmp_vect(U + offset2, comp_2, Nx);
         }
-        printf("me : %d ; %lf\n", me, U[2]);
+        //printf("me : %d ; %lf\n", me, U[2]);
         update_sec_membre(dx, dy, F,t,i12,iN2,&data_file,comp_1,comp_2);
-        MPI_Allreduce(&test1 , &test1_all, 1, MPI_INT, MPI_LAND, MPI_COMM_WORLD);
-        MPI_Allreduce(&test2 , &test2_all, 1, MPI_INT, MPI_LAND, MPI_COMM_WORLD);
+        double res = 0;
+        for(i = 0; i < nb_per_proc; i++) res += U[i] * U[i];
 
-        abort();
+        MPI_Allreduce(&res , norm + current_norm, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+        norm[current_norm] = sqrt(norm[current_norm]);
+
+        error = fabs(norm[current_norm] - norm[prev_norm]);
+        prev_norm = current_norm;
+        current_norm = (current_norm + 1) % 2;
+
+      //  abort();
 
       }
       t += dt;
       k += 1;
       if (k%50 == 0){
-        printf("%d %f\n",k, U0[4]);
+        printf("%d %f\n",k, U0[Nx+1]);
       }
     }
 
-
+    delete[] comp_1;
+    delete[] comp_2;
     // Ecriture de la solution sur des fichiers .dat pour chaque proc
 
     ofstream file;
