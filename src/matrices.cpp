@@ -38,20 +38,17 @@ void MatriceDF(double *D1,
       D3_p[k] = -D*sy;
     }
 
-    if (iN == Nx*Ny-1)
-    {
+    if (iN == Nx*Ny-1){
       for (k = nb_per_proc - Nx ; k < nb_per_proc; k++)
       D3_p[k] = 0.0 ;
     }
 
-    if (i1 == 0)
-    {
+    if (i1 == 0){
       for (k = 0 ; k < Nx; k++)
       D3_m[k] = 0.0;
     }
 
-    for( k = 0; k < nb_per_proc ; k += Nx)
-    {
+    for( k = 0; k < nb_per_proc ; k += Nx){
       D2_p[k+Nx-1] = 0.0;
       D2_m[k] = 0.0;
     }
@@ -76,12 +73,12 @@ void sec_membre(double dx,
     int nb_per_proc = iN-i1+1;
 
     int i = 0, j = 0, k = 0;
-    double sx, sy, A, B, C;
+    double sx, sy, /*A,*/ B, C;
 
 
     sx = dt/(dx*dx);
     sy = dt/(dy*dy);
-    A = 1.0+2.0*D*(sx+sy);
+    //A = 1.0+2.0*D*(sx+sy);
     B = -D*sx;
     C = -D*sy;
 
@@ -94,9 +91,6 @@ void sec_membre(double dx,
 
 
       Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Lx-dx,0.0,t)-B*h(Lx,dy,t);
-
-
-
       for (k = Nx; k < nb_per_proc; k++)                // k(i,j) = i + Nx*(j-1)
       {
         i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
@@ -109,11 +103,7 @@ void sec_membre(double dx,
         else if (k%Nx == Nx - 1)
           Fx[k] = Fx[k]-B*h(Lx,j*dy,t);
       }
-    }
-
-    // Dernier proc
-    else if (iN == Nx*Ny-1)
-    {
+    } else if (iN == Nx*Ny-1) { // Dernier proc
 
       for ( k = 0; k < nb_per_proc - Nx; k++)
       {
@@ -136,11 +126,7 @@ void sec_membre(double dx,
 
       Fx[nb_per_proc-1] = dt*f(Lx-dx,Ly-dy,t)-C*g(Lx-dx,Ly,t)-B*h(Lx,Ly-dy,t);
 
-    }
-
-    // Les autres procs
-    else
-    {
+    } else {// Les autres procs
       for (k = 0; k < nb_per_proc; k++)
       {
         i = Reste(k,Nx);

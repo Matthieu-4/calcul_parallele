@@ -43,11 +43,6 @@ double prodscal(const double X[],
   const int iN);
 
 
-double prodscal(const double X[],
-  const double Y[],
-  const int i1,
-  const int iN);
-
 
 int Reste(int k, int Nx);
 
