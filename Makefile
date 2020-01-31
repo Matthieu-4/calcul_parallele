@@ -7,7 +7,7 @@ CFLAGS += -std=c++11
 CFLAGS += -O3
 
 
-SRC_FILES = $(notdir $(wildcard src/*.cpp))
+SRC_FILES = $(notdir $(wildcard src2/*.cpp))
 OBJ_FILES = $(addprefix obj/,$(SRC_FILES:.cpp=.o))
 
 all: bin/main.exe
@@ -20,7 +20,7 @@ obj/%.o: src/%.cpp
 	$(CC) $< -o $@ -c $(CFLAGS)
 
 
-.PHONY: install run clean
+.PHONY: install run clean clean_result
 
 install:
 	mkdir -p bin obj Result pdf

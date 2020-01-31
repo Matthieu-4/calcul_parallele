@@ -28,7 +28,19 @@ class DataFile {
   bool _if_height;
 
  public:
-  DataFile(std::string file_name);
+  DataFile(std::string file_name):  _file_name(file_name),
+                                    _if_Nx(false),
+                                    _if_Ny(false),
+                                    _if_Lx(false),
+                                    _if_Ly(false),
+                                    _if_D(false),
+                                    _if_dt(false),
+                                    _if_tf(false),
+                                    _if_kmax(false),
+                                    _if_epsilon(false),
+                                    _if_results(false),
+                                    _if_cond_init(false){}
+
   std::string Get_file_name() const {return _file_name;}
   void ReadDataFile();
   double Get_Nx() const {return _Nx;};
