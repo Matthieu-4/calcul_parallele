@@ -7,7 +7,7 @@ CFLAGS += -std=c++11
 CFLAGS += -O3
 
 
-SRC_FILES = $(notdir $(wildcard src2/*.cpp))
+SRC_FILES = $(notdir $(wildcard src/*.cpp))
 OBJ_FILES = $(addprefix obj/,$(SRC_FILES:.cpp=.o))
 
 all: bin/main.exe
