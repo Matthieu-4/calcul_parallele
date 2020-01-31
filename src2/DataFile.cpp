@@ -10,7 +10,7 @@
 using namespace std;
 
 DataFile::DataFile(std::string file_name)
-: _if_Nx(false), _if_Ny(false), _if_Lx(false), _if_Ly(false), _if_D(false), _if_dt(false), _if_tf(false), _if_kmax(false), _if_epsilon(false), _if_results(false), _if_cond_init(false), _file_name(file_name)
+: _if_Nx(false), _if_Ny(false), _if_Lx(false), _if_Ly(false), _if_D(false), _if_dt(false), _if_tf(false), _if_kmax(false), _if_epsilon(false), _if_results(false), _if_cond_init(false), _file_name(file_name), _if_height(false)
 {}
 
 
@@ -82,6 +82,11 @@ DataFile::DataFile(std::string file_name)
       if (file_line.find("epsilon") != std::string::npos)
       {
         data_file >> _epsilon; _if_epsilon = true;
+      }
+
+      if (file_line.find("height") != std::string::npos)
+      {
+        data_file >> _height; _if_height = true;
       }
 
       if (file_line.find("set de conditions initiales") != std::string::npos)

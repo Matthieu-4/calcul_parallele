@@ -14,7 +14,7 @@ int tag = 100;
 double *U, *U0;
 int cond_init;
 double sx,sy,dx,dy,dt,Lx,Ly,D,eps1,t,tf, q;
-int i, me, Np, statinfo, i1, i12, iN, iN2, j_1, jN, Ny, Nx, n, k, kmax;
+int i, me, Np, statinfo, i1, i12, iN, iN2, j_1, jN, Ny, Nx, n, k, kmax, height;
 
 
 void Charge2(int n,
@@ -55,7 +55,7 @@ void Charge_part_domaine(int n,
             int* i12,
             int* iN,
             int* iN2,
-            int h){
+            int height){
 
   int q = n / Np;
   int r = n % Np;
@@ -86,14 +86,13 @@ void Charge_part_domaine(int n,
 
   if (*iN != Nx*Ny-1){
     *i12 = *i1;
-    *iN2 = *iN + Nx*h;
+    *iN2 = *iN + Nx*height;
   }
 }
 
 
 void Init(DataFile* dataFile){
   int i1, iN, i12, iN2;
-  int h = 2;
   double q;
 
   Nx = dataFile->Get_Nx();
@@ -106,6 +105,8 @@ void Init(DataFile* dataFile){
   kmax = dataFile->Get_kmax();
   tf = dataFile->Get_tf();
   cond_init = dataFile->Get_cond_init();
+  height = dataFile->Get_height();
+  printf("%d\n", height);
 
   dx = Lx/(Nx+1);
   dy = Ly/(Ny+1);
@@ -136,7 +137,7 @@ double g(double x, double y, double t){
 
 double h(double x, double y, double t){
   if(cond_init == 3){
-    return 1.;
+    return y*y;
   }else if(cond_init == 2){
     return sin(x) + cos(y);
   }else{
@@ -212,8 +213,8 @@ void grad_conj(double D1[],
   double* z = (double*)malloc(sizeof(double) * (iN - i1 + 1));
   double* y = (double*)malloc(sizeof(double) * (iN - i1 + 1));
 
-  //for(i = 0; i < iN - i1 + 1; i++)
-    //x[i] = 293.0;
+  // for(i = 0; i < iN - i1 + 1; i++)
+  //   x[i] = 293.0;
   ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,x,y,i1,iN);
 
   for(i = 0; i < iN - i1 + 1; i++){
@@ -247,15 +248,4 @@ void grad_conj(double D1[],
   delete[] r2;
   delete[] z;
   delete[] y;
-}
-
-int cmp_vect(const double x[],
-             const double y[],
-             const int Nx)    // ajouter epsilon (précision)
-{
-  int i = 0;//0.0001
-  while (i < Nx && fabs(x[i] - y[i]) < 0.001 )  // epsilon = 000.00001
-    i += 1;
-
-  return (i == Nx);
 }
