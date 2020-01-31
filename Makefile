@@ -1,31 +1,31 @@
 CC = mpic++
-# CCF = mpif90
 
 CFLAGS = -I./include
 CFLAGS += -std=c++11
-CFLAGS +=  -g -O0
+#CFLAGS +=  -g -O0
+
+CFLAGS += -O3
 
 
-#LDFLAGS = -fopenmp
-
-SRC_FILES = $(notdir $(wildcard src2/*.cpp))
+SRC_FILES = $(notdir $(wildcard src/*.cpp))
 OBJ_FILES = $(addprefix obj/,$(SRC_FILES:.cpp=.o))
+
 all: bin/main.exe
 
 
 bin/main.exe: $(OBJ_FILES)
 	$(CC) -o $@ $^ $(LDFLAGS)
 
-obj/%.o: src2/%.cpp
+obj/%.o: src/%.cpp
 	$(CC) $< -o $@ -c $(CFLAGS)
 
 
 .PHONY: install run clean
 
 install:
-	mkdir -p bin obj Result obj/data
+	mkdir -p bin obj Result pdf
 
-# Use default settings for h and method
+# Use default settings for overlap and method
 H =
 C =
 run: all
@@ -42,7 +42,7 @@ VERIONS = 0 1 2
 OUT = Result/data_speedup.csv
 
 data_speedup: bin/main.exe
-	@echo "v,n,t" > $(OUT)
+	@echo "v,n,t,e" > $(OUT)
 	@for v in $(VERIONS); do \
 			for p in $(NB_PORC); do \
 				echo -n "$$v,$$p," >> $(OUT) ; \
@@ -62,11 +62,12 @@ data_h: bin/main.exe
 	done
 
 h: data_h
-	R CMD BATCH h.R
+	R CMD BATCH graph/h.R
 
 speedup: data_speedup
-	R CMD BATCH speedup.R
+	R CMD BATCH graph/speedup.R
 
-graph: data_speedup data_h
-	R CMD BATCH speedup.R
-	R CMD BATCH h.R
+error: data_speedup
+	R CMD BATCH graph/error.R
+
+graph: h speedup error

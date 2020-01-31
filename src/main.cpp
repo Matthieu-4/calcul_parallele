@@ -4,8 +4,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "function_2.hpp"
-#include "matrices_2.hpp"
+#include "function.hpp"
+#include "matrices.hpp"
 #include "DataFile.hpp"
 
 using namespace std;

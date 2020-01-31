@@ -3,3 +3,6 @@ obj/
 *~
 *.png
 Result/
+pdf/
+*.Rout
+*.RData

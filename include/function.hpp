@@ -22,6 +22,16 @@ void Charge2(int n,
   int* iN,
   double* q2);
 
+
+void Charge_part_domaine(int n,
+  int Np,
+  int me,
+  int* i1,
+  int* i12,
+  int* iN,
+  int* iN2,
+  int h);    // h hauteur de la partie partagée
+
 void Init(DataFile*);
 double f(double x, double y, double t);
 double g(double x, double y, double t);
@@ -62,14 +72,8 @@ void grad_conj(double D1[],
   int iN);
 
 
-void grad_conj(double D1[],
-  double D2_m[],
-  double D2_p[],
-  double D3_m[],
-  double D3_p[],
-  double x[],
-  double b[],
-  int i1,
-  int iN);
+  int cmp_vect(const double x[],
+               const double y[],
+               const int Nx);    // ajouter epsilon (précision)
 
 #endif

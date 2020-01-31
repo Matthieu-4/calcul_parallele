@@ -5,7 +5,7 @@
 #include <cstdlib>
 #include <malloc.h>
 
-#include "function_2.hpp"
+#include "function.hpp"
 using namespace std;
 
 MPI_Status status;

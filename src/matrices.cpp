@@ -4,8 +4,8 @@
 #include <fstream>
 #include <malloc.h>
 #include <unistd.h>
-#include "function_2.hpp"
-#include "matrices_2.hpp"
+#include "function.hpp"
+#include "matrices.hpp"
 using namespace std;
 
 
