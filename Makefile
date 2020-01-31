@@ -27,9 +27,9 @@ install:
 
 # Use default settings for overlap and method
 H =
-C =
+V =
 run: all
-	mpirun -n 8 --mca pml ob1 ./bin/main.exe data.txt $(C) $(H)
+	mpirun -n 8 --mca pml ob1 ./bin/main.exe data.txt $(V) $(H)
 
 clean:
 	rm -f bin/* obj/*.o

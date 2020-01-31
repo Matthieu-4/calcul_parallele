@@ -21,6 +21,7 @@ int main(int argc, char** argv)
     cerr << "Please, enter the name of your data file." << endl;
     abort();
   }
+  // Récupération des paramètres de recouvrement et quel méthode utilisée
   if (argc > 3)
   {
     choice = atoi(argv[2]);
@@ -45,17 +46,17 @@ int main(int argc, char** argv)
   // Répartition des procs
   int nb_per_proc = -1;
   int i12, iN2;
-  if(choice == 1 || choice == 2){
+  if(choice == 1 || choice == 2){ // Calcul du nombre d'éléments pour chaque proc pour Schwarz et Neumann
     Charge_part_domaine(Ny,Np,me,&i1,&i12,&iN,&iN2,height);
     nb_per_proc = iN2-i12+1;
-  } else {
+  } else { // Calcul du nombre d'éléments pour chaque proc pour le GC
     Charge2(Ny,Np,me,&i1,&iN,&q);
     nb_per_proc = iN-i1+1;
   }
 
+
   U = (double*) calloc(nb_per_proc, sizeof(double));
   U0 = (double*) calloc(nb_per_proc, sizeof(double));
-
   double* F = (double*)calloc(sizeof(double), nb_per_proc);
   double* D1 = (double*)calloc(sizeof(double), nb_per_proc);
   double* D2_m = (double*)calloc(sizeof(double), nb_per_proc);
@@ -63,15 +64,18 @@ int main(int argc, char** argv)
   double* D3_m = (double*)calloc(sizeof(double), nb_per_proc);
   double* D3_p = (double*)calloc(sizeof(double), nb_per_proc);
 
-  if (choice == 0){
+
+
+  if (choice == 0){ // GC
 
     MatriceDF(D1,D2_m,D2_p,D3_m,D3_p,sx,sy,i1,iN, &data_file);
 
     int k = 0;
-    /////////////////////////// BOUCLE EN TEMPS /////////////////////////
+    // Mesure du temps
     struct timespec t1, t2;
     clock_gettime(CLOCK_MONOTONIC, &t1);
 
+    /////////////////////////// BOUCLE EN TEMPS /////////////////////////
     while (t<tf)
     {
       sec_membre(dx, dy, F,t,i1,iN,&data_file);
@@ -87,20 +91,26 @@ int main(int argc, char** argv)
 
     }
 
+    // Mesure du temps et de l'erreur
     clock_gettime(CLOCK_MONOTONIC, &t2);
-      double error = 0, error_all;
-      int i,j;
-      for(i = 1; i <= Nx; i++)
-        for(j = 1; j <= Ny; j++){
-          double d = U[i + j * (Nx-1)] - i*dx*(1-i*dx)*j*dy*(1-j*dy);
-          error += d*d;
-        }
-      MPI_Allreduce(&error , &error_all, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-      error_all = sqrt(error_all);
+    double error = 0, error_all;
+    int i,j;
+    for(i = 1; i <= Nx; i++)
+      for(j = 1; j <= Ny; j++){
+        double d = U[i + j * (Nx-1)] - i*dx*(1-i*dx)*j*dy*(1-j*dy);
+        error += d*d;
+      }
+    MPI_Allreduce(&error , &error_all, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    error_all = sqrt(error_all);
     if(me == 0){
       cout << (t2.tv_sec - t1.tv_sec) * 1000000.0 + (t2.tv_nsec - t1.tv_nsec) / 1000.0 << "," << error_all << endl;
     }
 
+
+
+      ////////////////////////////////////////////////////////////////////
+      ////////////////////////////DIRCHLET-SCHWARZ////////////////////////
+      ////////////////////////////////////////////////////////////////////
   } else if (choice == 1) {
 
     int k = 0, l = 0;
@@ -109,8 +119,9 @@ int main(int argc, char** argv)
 
     MatriceDF(D1,D2_m,D2_p,D3_m,D3_p,sx,sy,i12,iN2, &data_file);
 
-    double error;
 
+    // Mesure du temps
+    double error;
     struct timespec t1, t2;
     clock_gettime(CLOCK_MONOTONIC, &t1);
 
@@ -124,6 +135,7 @@ int main(int argc, char** argv)
       int offset1 = Nx*height;
       int offset2 = iN-i1+1 - Nx;
 
+      // Envoi des données initiales
       if (i12 == 0){
         MPI_Recv(comp_2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
         MPI_Send(U + iN-i1+1 - Nx, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
@@ -145,8 +157,10 @@ int main(int argc, char** argv)
         for(toto = 0; toto < nb_per_proc; toto++){
           F[toto] += U0[toto];
         }
+
         grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U, F,i12,iN2);
 
+        // Envoi des conditions au bords
         if (i12 == 0){
           MPI_Recv(comp_2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
           MPI_Send(U + offset2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
@@ -162,8 +176,10 @@ int main(int argc, char** argv)
           MPI_Send(U + offset2, Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
         }
 
+        // Mise à jour du second menbre
         update_sec_membre(dx, dy, F,t,i12,iN2,&data_file,comp_1,comp_2);
 
+        // Calcul de l'erreur entre U et U0
         double res = 0;
         for(i = 0; i < nb_per_proc; i++) res += U[i] * U[i];
         MPI_Allreduce(&res , norm + current_norm, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
@@ -181,17 +197,18 @@ int main(int argc, char** argv)
 
     }
 
+    // Mesure du temps et de l'erreur
     clock_gettime(CLOCK_MONOTONIC, &t2);
-      double error_all;
-      error = 0;
-      int i,j;
-      for(i = 1; i <= Nx; i++)
-        for(j = 1; j <= Ny; j++){
-          double d = U[i + j * (Nx-1)] - i*dx*(1-i*dx)*j*dy*(1-j*dy);
-          error += d*d;
-        }
-      MPI_Allreduce(&error , &error_all, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-      error_all = sqrt(error_all);
+    double error_all;
+    error = 0;
+    int i,j;
+    for(i = 1; i <= Nx; i++)
+      for(j = 1; j <= Ny; j++){
+        double d = U[i + j * (Nx-1)] - i*dx*(1-i*dx)*j*dy*(1-j*dy);
+        error += d*d;
+      }
+    MPI_Allreduce(&error , &error_all, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    error_all = sqrt(error_all);
     if(me == 0){
       cout << (t2.tv_sec - t1.tv_sec) * 1000000.0 + (t2.tv_nsec - t1.tv_nsec) / 1000.0 << "," << error_all << endl;
     }
@@ -215,10 +232,11 @@ int main(int argc, char** argv)
 
     MatriceDF3(D1,D2_m,D2_p,D3_m,D3_p,sx,sy,alpha, beta, i12,iN2, &data_file);
 
+    // Mesure du temps
     double error;
-
     struct timespec t1, t2;
     clock_gettime(CLOCK_MONOTONIC, &t1);
+
     /////////////////////////// BOUCLE EN TEMPS /////////////////////////
     while (t<tf) {
 
@@ -229,10 +247,10 @@ int main(int argc, char** argv)
       int offset1 = Nx*height;
       int offset2 = iN-i1+1 - Nx;
 
+      // Envoi des données initiales
       if (i12 == 0){
         MPI_Recv(comp_2, 2*Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
         MPI_Send(U + offset2, 2*Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
-
 
       }else if (iN2 == Nx*Ny - 1){
         MPI_Send(U + offset1 - Nx, 2*Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
@@ -248,16 +266,17 @@ int main(int argc, char** argv)
 
 
       while (error > 0.00001) {
-        int toto = 0;
-        for(toto = 0; toto < nb_per_proc; toto++){
-          F[toto] += U0[toto];
+        int ii = 0;
+        for(ii = 0; ii < nb_per_proc; ii++){
+          F[ii] += U0[ii];
         }
+
         grad_conj(D1,D2_m,D2_p,D3_m,D3_p,U, F,i12,iN2);
 
+        // Envoi des conditions au bords et la ligne suivante
         if (i12 == 0){
           MPI_Recv(comp_2, 2*Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD, &status);
           MPI_Send(U + offset2, 2*Nx, MPI_DOUBLE, me+1, tag, MPI_COMM_WORLD);
-
 
         }else if (iN2 == Nx*Ny - 1){
           MPI_Send(U + offset1 - Nx, 2*Nx, MPI_DOUBLE, me-1, tag, MPI_COMM_WORLD);
@@ -271,8 +290,10 @@ int main(int argc, char** argv)
 
         }
 
+        // Mise à jour du second membre
         update_sec_membre3(dx, dy, F,t,alpha, beta, i12,iN2,&data_file,comp_1,comp_2);
 
+        // Calcul de l'erreur entre 2 itérations de Schwarz
         double res = 0;
         for(i = 0; i < nb_per_proc; i++) res += U[i] * U[i];
         MPI_Allreduce(&res , norm + current_norm, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
@@ -290,17 +311,18 @@ int main(int argc, char** argv)
 
     }
 
+    // Mesure du temps et de l'erreur par rapport à la formule exacte pour x(1-x)y(1-y)
     clock_gettime(CLOCK_MONOTONIC, &t2);
-      double error_all;
-      error = 0;
-      int i,j;
-      for(i = 1; i <= Nx; i++)
-        for(j = 1; j <= Ny; j++){
-          double d = U[i + j * (Nx-1)] - i*dx*(1-i*dx)*j*dy*(1-j*dy);
-          error += d*d;
-        }
-      MPI_Allreduce(&error , &error_all, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
-      error_all = sqrt(error_all);
+    double error_all;
+    error = 0;
+    int i,j;
+    for(i = 1; i <= Nx; i++)
+      for(j = 1; j <= Ny; j++){
+        double d = U[i + j * (Nx-1)] - i*dx*(1-i*dx)*j*dy*(1-j*dy);
+        error += d*d;
+      }
+    MPI_Allreduce(&error , &error_all, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+    error_all = sqrt(error_all);
     if(me == 0){
       cout << (t2.tv_sec - t1.tv_sec) * 1000000.0 + (t2.tv_nsec - t1.tv_nsec) / 1000.0 << "," << error_all << endl;
     }

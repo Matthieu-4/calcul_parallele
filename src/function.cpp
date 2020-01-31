@@ -16,7 +16,7 @@ int cond_init;
 double sx,sy,dx,dy,dt,Lx,Ly,D,eps1,t,tf, q;
 int i, me, Np, statinfo, i1, i12, iN, iN2, j_1, jN, Ny, Nx, n, k, kmax, height;
 
-
+// Calcul le nombre d'éléments de chaque le GC
 void Charge2(int n,
             int Np,
             int me,
@@ -48,6 +48,7 @@ void Charge2(int n,
   *iN = (*iN + 1) * Nx - 1;
 }
 
+// Calcul le nombre d'éléments de chaque processus pour scharz et Neumann
 void Charge_part_domaine(int n,
             int Np,
             int me,
@@ -74,7 +75,6 @@ void Charge_part_domaine(int n,
   }
 
   // q est le nombre de lignes connues par le proc
-  // *q2 = (*iN) - (*i1) + 1;
 
   // On travaille sur n = nx*ny éléments
   *i1 = (*i1) * Nx;
@@ -89,7 +89,7 @@ void Charge_part_domaine(int n,
   }
 }
 
-
+// Initialisation des variables globales
 void Init(DataFile* dataFile){
   int i1, iN, i12, iN2;
   double q;
@@ -113,7 +113,7 @@ void Init(DataFile* dataFile){
 }
 
 
-
+// conditions au bords
 double f(double x, double y, double t){
   if(cond_init == 3){
     return exp(-((x - Lx/2) * (x - Lx/2))) * exp(-((y - Ly/2) * (y - Ly/2))) * cos(t*M_PI/2);
@@ -144,7 +144,7 @@ double h(double x, double y, double t){
 }
 
 
-
+// Produit matriciel pour une matrice de pentadiagonale
 void ProdMatVect(double D1[],
                  double D2_m[],
                  double D2_p[],
@@ -171,6 +171,7 @@ void ProdMatVect(double D1[],
 
 }
 
+// Produit scalaire entre X et Y
 double prodscal(const double X[],
                 const double Y[],
                 const int i1,
@@ -192,6 +193,8 @@ int Reste(int k, int Nx){
   return i;
 }
 
+
+// GC pour une matrice de pentadiagonale
 void grad_conj(double D1[],
                  double D2_m[],
                  double D2_p[],
@@ -211,8 +214,6 @@ void grad_conj(double D1[],
   double* z = (double*)malloc(sizeof(double) * (iN - i1 + 1));
   double* y = (double*)malloc(sizeof(double) * (iN - i1 + 1));
 
-  // for(i = 0; i < iN - i1 + 1; i++)
-  //   x[i] = 293.0;
   ProdMatVect(D1,D2_m,D2_p,D3_m,D3_p,x,y,i1,iN);
 
   for(i = 0; i < iN - i1 + 1; i++){

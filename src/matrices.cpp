@@ -57,7 +57,7 @@ void MatriceDF(double *D1,
   }
 }
 
-// Construction de la matrice DF (cas linéaire)
+// Construction de la matrice DF (cas linéaire) pour Neumann
 void MatriceDF3(double *D1,
   double *D2_m,
   double *D2_p,
@@ -116,7 +116,7 @@ void MatriceDF3(double *D1,
   }
 }
 
-
+// Calcul du second menbre pour le CG seul
 void sec_membre(double dx,
   double dy,
   double *Fx,
@@ -156,10 +156,10 @@ void sec_membre(double dx,
 
 
 
-    for (k = Nx; k < nb_per_proc; k++)                // k(i,j) = i + Nx*(j-1)
+    for (k = Nx; k < nb_per_proc; k++)
     {
-      i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
-      j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
+      i = Reste(k,Nx);
+      j = (i1+k)/Nx + 1.0;
       Fx[k] = dt*f(i*dx,j*dy,t);
 
 
@@ -214,6 +214,7 @@ void sec_membre(double dx,
   }
 }
 
+// Calcul du second menbre pour Scharz
 void update_sec_membre(double dx,
   double dy,
   double *Fx,
@@ -251,10 +252,10 @@ void update_sec_membre(double dx,
     }
     Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Lx-dx,0.0,t)-B*h(Lx,dy,t);
 
-    for (k = Nx; k < nb_per_proc - Nx; k++)                // k(i,j) = i + Nx*(j-1)
+    for (k = Nx; k < nb_per_proc - Nx; k++)
     {
-      i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
-      j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
+      i = Reste(k,Nx);
+      j = (i1+k)/Nx + 1.0;
       Fx[k] = dt*f(i*dx,j*dy,t);
       if (k%Nx == 0)
         Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
@@ -265,7 +266,6 @@ void update_sec_membre(double dx,
     Fx[nb_per_proc - Nx] = dt*f(dx,Ly-dy,t)-C*comp_2[0]-B*h(0.0,((i1+nb_per_proc-Nx)/Nx + 1.0)*dy,t);
     for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++){
       Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) - C*comp_2[k - nb_per_proc + Nx];
-      // printf("me%d : comp_2[%f] (%f) = %f\n",me, Lx - dx, Reste(k,Nx)*dx, comp_2[k - nb_per_proc + Nx]);
     }
     Fx[nb_per_proc-1] = dt*f(Lx-dx,Ly-dy,t)-C*comp_2[Nx-1]-B*h(Lx,((i1+nb_per_proc-1)/Nx + 1.0)*dy,t);
 
@@ -277,10 +277,10 @@ void update_sec_membre(double dx,
     }
     Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*comp_1[Nx-1]-B*h(Lx,((i1+Nx-1)/Nx + 1.0)*dy,t);
 
-    for (k = Nx; k < nb_per_proc - Nx; k++)                // k(i,j) = i + Nx*(j-1)
+    for (k = Nx; k < nb_per_proc - Nx; k++)
     {
-      i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
-      j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
+      i = Reste(k,Nx);
+      j = (i1+k)/Nx + 1.0;
       Fx[k] = dt*f(i*dx,j*dy,t);
 
       if (k%Nx == 0)
@@ -303,10 +303,10 @@ void update_sec_membre(double dx,
       Fx[k] = dt*f(Reste(k,Nx)*dx,dy,t) - C*comp_1[k];
     Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*comp_1[Nx-1]-B*h(Lx,((i1+Nx-1)/Nx + 1.0)*dy,t);
 
-    for (k = Nx; k < nb_per_proc - Nx; k++)                // k(i,j) = i + Nx*(j-1)
+    for (k = Nx; k < nb_per_proc - Nx; k++)
     {
-      i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
-      j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
+      i = Reste(k,Nx);
+      j = (i1+k)/Nx + 1.0;
       Fx[k] = dt*f(i*dx,j*dy,t);
       if (k%Nx == 0)
         Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
@@ -321,7 +321,7 @@ void update_sec_membre(double dx,
   }
 }
 
-
+// Calcul du second menbre pour Neumann
 void update_sec_membre3(double dx,
   double dy,
   double *Fx,
@@ -367,10 +367,10 @@ void update_sec_membre3(double dx,
     }
     Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) - C*g(Lx-dx,0.0,t)-B*h(Lx,dy,t);
 
-    for (k = Nx; k < nb_per_proc - Nx; k++)                // k(i,j) = i + Nx*(j-1)
+    for (k = Nx; k < nb_per_proc - Nx; k++)
     {
-      i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
-      j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
+      i = Reste(k,Nx);
+      j = (i1+k)/Nx + 1.0;
       Fx[k] = dt*f(i*dx,j*dy,t);
       if (k%Nx == 0)
         Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
@@ -381,7 +381,6 @@ void update_sec_membre3(double dx,
     Fx[nb_per_proc - Nx] = dt*f(dx,Ly-dy,t)+DN[0]-B*h(0.0,((i1+nb_per_proc-Nx)/Nx + 1.0)*dy,t);
     for (k= nb_per_proc - Nx + 1; k < nb_per_proc - 1; k++){
       Fx[k] = dt*f(Reste(k,Nx)*dx,Ly-dy,t) + DN[k - nb_per_proc + Nx];
-      // printf("me%d : comp_2[%f] (%f) = %f\n",me, Lx - dx, Reste(k,Nx)*dx, comp_2[k - nb_per_proc + Nx]);
     }
     Fx[nb_per_proc-1] = dt*f(Lx-dx,Ly-dy,t)+DN[Nx-1]-B*h(Lx,((i1+nb_per_proc-1)/Nx + 1.0)*dy,t);
 
@@ -398,10 +397,10 @@ void update_sec_membre3(double dx,
     }
     Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) + DN[Nx-1]-B*h(Lx,((i1+Nx-1)/Nx + 1.0)*dy,t);
 
-    for (k = Nx; k < nb_per_proc - Nx; k++)                // k(i,j) = i + Nx*(j-1)
+    for (k = Nx; k < nb_per_proc - Nx; k++)
     {
-      i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
-      j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
+      i = Reste(k,Nx);
+      j = (i1+k)/Nx + 1.0;
       Fx[k] = dt*f(i*dx,j*dy,t);
 
       if (k%Nx == 0)
@@ -428,10 +427,10 @@ void update_sec_membre3(double dx,
       Fx[k] = dt*f(Reste(k,Nx)*dx,dy,t) + DN[k];
     Fx[Nx-1] = dt*f(Reste(k,Nx)*dx,dy,t) + DN[Nx-1]-B*h(Lx,((i1+Nx-1)/Nx + 1.0)*dy,t);
 
-    for (k = Nx; k < nb_per_proc - Nx; k++)                // k(i,j) = i + Nx*(j-1)
+    for (k = Nx; k < nb_per_proc - Nx; k++)
     {
-      i = Reste(k,Nx);                // i(k) = reste de k/Nx (+ voir fonction Reste)
-      j = (i1+k)/Nx + 1.0;           // j(k) = (quotient de k-1 divis� par Nx) + 1
+      i = Reste(k,Nx);
+      j = (i1+k)/Nx + 1.0;
       Fx[k] = dt*f(i*dx,j*dy,t);
       if (k%Nx == 0)
         Fx[k] = Fx[k]-B*h(0.0,j*dy,t);
