@@ -186,6 +186,7 @@ void sec_membre(double dx,
       else if (k%Nx == Nx - 1)
       Fx[k] = Fx[k]-B*h(Lx,j*dy,t);
     }
+  }
 
     Fx[nb_per_proc - Nx] = dt*f(dx,Ly-dy,t)-C*g(dx,Ly,t)-B*h(0.0,Ly-dy,t);
 
@@ -322,6 +323,7 @@ void update_sec_membre(double dx,
   }
 }
 
+        Fx[0] = dt*f(dx,dy,t) - C*comp_1[0] - B * h(0.0,dy,t);
 
 void update_sec_membre3(double dx,
   double dy,

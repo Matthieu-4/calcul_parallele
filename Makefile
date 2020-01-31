@@ -39,7 +39,7 @@ install:
 	mkdir -p bin obj Result #obj/f90
 
 run: all
-	mpirun -n 6 --mca pml ob1 ./bin/main.exe data.txt
+	mpirun -n 8 --mca pml ob1 ./bin/main.exe data.txt
 
 clean:
 	rm -f bin/* obj/*.o obj/f90/*.o

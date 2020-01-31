@@ -1,8 +1,8 @@
 Nx
-50
+48
 
 Ny
-50
+48
 
 Lx
 1.0
@@ -26,10 +26,13 @@ kmax
 100
 
 tf
-5.0
+3.0
 
 results
 Result
 
+height
+1
+
 set de conditions initiales
-2
+1

@@ -10,7 +10,7 @@ class DataFile {
  private:
 
   std::string _file_name;
-  int _Nx, _Ny, _kmax, _cond_init;
+  int _Nx, _Ny, _kmax, _height, _cond_init;
   double _Lx, _Ly, _D, _dt, _epsilon, _tf;
   std::string _results;
 
@@ -25,6 +25,7 @@ class DataFile {
   bool _if_epsilon;
   bool _if_results;
   bool _if_cond_init;
+  bool _if_height;
 
  public:
   DataFile(std::string file_name);
@@ -40,6 +41,7 @@ class DataFile {
   double Get_kmax() const {return _kmax;};
   double Get_epsilon() const {return _epsilon;};
   double Get_cond_init() const {return _cond_init;};
+  int Get_height() const {return _height;};
   std::string Get_results() const {return _results;};
   //void SaveResult();
 

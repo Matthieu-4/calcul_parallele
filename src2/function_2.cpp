@@ -62,7 +62,6 @@ void Charge_part_domaine(int n,
 
   if(r == 0){
     *i1 = q * me;
-
     *iN = q * (me + 1) - 1;
   }else{
     if( me < r){
