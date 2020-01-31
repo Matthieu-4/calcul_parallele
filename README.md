@@ -22,7 +22,9 @@ make run
 make run H=<overlap> V=[0,1,2]
 
 0 : CG
+
 1 : Schwarz (Dirichlet)
+
 2 : Schwarz (Dirichlet-Neumann)
 
 ## Compile and create graphs
