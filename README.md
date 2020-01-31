@@ -19,7 +19,7 @@ make clean
 
 make run
 
-make run H=<overlap> V=[0,1,2]
+make run H=overlap V=[0,1,2]
 
 0 : CG
 
